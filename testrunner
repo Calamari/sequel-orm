@@ -1,15 +1,6 @@
 #!/usr/local/bin/node
 
-var reporter  = require('nodeunit').reporters.default,
-
-    MYSQL_CONNECTION_DATA = {
-      host: '127.0.0.1',
-      port: '3306',
-      type: 'mysql',
-      user: 'root',
-      password: '',
-      database: 'sequel_orm_test'
-    };
+var reporter  = require('nodeunit').reporters.default;
 
 process.chdir(__dirname);
 reporter.run([ 'test' ], null, function() {
