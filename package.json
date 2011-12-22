@@ -11,7 +11,8 @@
     "node": "~0.6"
   },
   "dependencies": {
-    "nodeunit": "~0.6"
+    "nodeunit": "~0.6",
+    "mysql": "~0.9"
   },
   "devDependencies": {}
 }
