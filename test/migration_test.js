@@ -6,7 +6,7 @@ var Seq = require(__dirname + '/..'),
 module.exports = {
   setUp: function(cb) {
     this.db = Seq.create(TEST_CONFIG);
-    cb();
+    client.query("DROP TABLE products;", function() { cb(); });
   },
   tearDown: function(cb) {
     client.query("DROP TABLE products;", function() { cb(); });
@@ -221,6 +221,18 @@ module.exports = {
         test.done();
       });
     });
-  
+  },
+  'test dropping of a Table': function(test) {
+    var db = this.db;
+    db.createTable('products', function(err) {
+      if (err) throw err;
+      db.dropTable('products', function(err) {
+        if (err) throw err;
+        client.query("DESCRIBE products;", function(err, result) {
+          test.ok(err, 'should be errornous because table should be deleted.');
+          test.done();
+        });
+      });
+    });
   }
 };
