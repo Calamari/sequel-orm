@@ -101,7 +101,7 @@ module.exports = {
       if (err) throw err;
       client.query("DESCRIBE products;", function(err, result) {
         if (err) throw err;
-        test.equal(result.length, 2, 'We should have a table with two field');
+        test.equal(result.length, 2, 'We should have a table with two fields');
         test.equal(result[1].Field, 'foo');
         test.equal(result[1].Null, 'YES');
         test.equal(result[1].Key, '');
@@ -125,7 +125,7 @@ module.exports = {
       if (err) throw err;
       client.query("DESCRIBE products;", function(err, result) {
         if (err) throw err;
-        test.equal(result.length, 9, 'We should have a table with nine field');
+        test.equal(result.length, 9, 'We should have a table with nine fields');
         test.equal(result[1].Null, 'YES', result[1].Field + ' should be nullable');
         test.equal(result[2].Null, 'YES', result[2].Field + ' should be nullable');
         test.equal(result[3].Null, 'YES', result[3].Field + ' should be nullable');
@@ -160,7 +160,7 @@ module.exports = {
       if (err) throw err;
       client.query("DESCRIBE products;", function(err, result) {
         if (err) throw err;
-        test.equal(result.length, 9, 'We should have a table with nine field');
+        test.equal(result.length, 9, 'We should have a table with nine fields');
         test.equal(result[1].Default, 'some text', result[1].Field + ' should have default value');
         test.equal(result[2].Default, 42, result[2].Field + ' should have default value');
         test.equal(result[3].Default, 42.5, result[3].Field + ' should have default value');
@@ -172,5 +172,55 @@ module.exports = {
         test.done();
       });
     });
+  },
+  'test single unique columns': function(test) {
+    this.db.createTable('products', function(table) {
+      table.addColumn('its_unique', Seq.dataTypes.VARCHAR({ unique: true }));
+      table.addColumn('not_unique', Seq.dataTypes.VARCHAR());
+    }, function(err) {
+      if (err) throw err;
+      client.query("DESCRIBE products;", function(err, result) {
+        if (err) throw err;
+        test.equal(result.length, 3, 'We should have a table with three fields');
+        test.equal(result[1].Key, 'UNI');
+        test.equal(result[2].Key, '');
+        test.done();
+      });
+    });
+  },
+  'test single unique columns via addUniqueKey method': function(test) {
+    this.db.createTable('products', function(table) {
+      table.addColumn('its_unique', Seq.dataTypes.VARCHAR());
+      table.addColumn('not_unique', Seq.dataTypes.VARCHAR());
+      table.addUniqueKey('its_unique');
+    }, function(err) {
+      if (err) throw err;
+      client.query("DESCRIBE products;", function(err, result) {
+        if (err) throw err;
+        test.equal(result.length, 3, 'We should have a table with three fields');
+        test.equal(result[1].Key, 'UNI');
+        test.equal(result[2].Key, '');
+        test.done();
+      });
+    });
+  },
+  'test multicolumn uniques': function(test) {
+    this.db.createTable('products', function(table) {
+      table.addColumn('unique_part_one', Seq.dataTypes.VARCHAR());
+      table.addColumn('unique_part_two', Seq.dataTypes.VARCHAR());
+      table.addColumn('not_unique', Seq.dataTypes.VARCHAR());
+      table.addUniqueKey(['unique_part_one', 'unique_part_two']);
+    }, function(err) {
+      if (err) throw err;
+      client.query("DESCRIBE products;", function(err, result) {
+        if (err) throw err;
+        test.equal(result.length, 4, 'We should have a table with three fields');
+        test.equal(result[1].Key, 'MUL');
+        test.equal(result[2].Key, '');
+        test.equal(result[3].Key, '');
+        test.done();
+      });
+    });
+  
   }
 };
