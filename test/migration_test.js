@@ -69,6 +69,7 @@ module.exports = {
         if (err) throw err;
         test.equal(result.length, 2, 'We should have a table with only one field');
         test.equal(result[1].Field, 'foo');
+        test.equal(result[1].Null, 'NO');
         test.equal(result[1].Key, '');
         test.equal(result[1].Extra, '');
         test.equal(result[1].Type, 'varchar(255)');
@@ -100,12 +101,39 @@ module.exports = {
       if (err) throw err;
       client.query("DESCRIBE products;", function(err, result) {
         if (err) throw err;
-        test.equal(result.length, 2, 'We should have a table with only one field');
+        test.equal(result.length, 2, 'We should have a table with two field');
         test.equal(result[1].Field, 'foo');
         test.equal(result[1].Null, 'YES');
         test.equal(result[1].Key, '');
         test.equal(result[1].Extra, '');
         test.equal(result[1].Type, 'varchar(255)');
+        test.done();
+      });
+    });
+  },
+  'test making columns (not) nullable': function(test) {
+    this.db.createTable('products', function(table) {
+      table.addColumn('nully', Seq.dataTypes.VARCHAR({ allowNull: true }));
+      table.addColumn('nully_int', Seq.dataTypes.INT({ allowNull: true }));
+      table.addColumn('nully_datetime', Seq.dataTypes.DATETIME({ allowNull: true }));
+      table.addColumn('nully_bool', Seq.dataTypes.BOOLEAN({ allowNull: true }));
+      table.addColumn('not_nully', Seq.dataTypes.VARCHAR({ allowNull: false }));
+      table.addColumn('not_nully_int', Seq.dataTypes.INT({ allowNull: false }));
+      table.addColumn('not_nully_datetime', Seq.dataTypes.DATETIME({ allowNull: false }));
+      table.addColumn('not_nully_bool', Seq.dataTypes.BOOLEAN({ allowNull: false }));
+    }, function(err) {
+      if (err) throw err;
+      client.query("DESCRIBE products;", function(err, result) {
+        if (err) throw err;
+        test.equal(result.length, 9, 'We should have a table with nine field');
+        test.equal(result[1].Null, 'YES', result[1].Field + 'should be nullable');
+        test.equal(result[2].Null, 'YES', result[2].Field + 'should be nullable');
+        test.equal(result[3].Null, 'YES', result[3].Field + 'should be nullable');
+        test.equal(result[4].Null, 'YES', result[4].Field + 'should be nullable');
+        test.equal(result[5].Null, 'NO', result[5].Field + 'should be not nullable');
+        test.equal(result[6].Null, 'NO', result[6].Field + 'should be not nullable');
+        test.equal(result[7].Null, 'NO', result[7].Field + 'should be not nullable');
+        test.equal(result[8].Null, 'NO', result[8].Field + 'should be not nullable');
         test.done();
       });
     });
