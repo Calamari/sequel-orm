@@ -3,12 +3,9 @@ var Seq = require(__dirname + '/..'),
     TEST_CONFIG = require(__dirname + '/test_config'),
     client = mysql.createClient(TEST_CONFIG);
 
-module.exports = {
+module.exports.createTable = {
   setUp: function(cb) {
     this.db = Seq.create(TEST_CONFIG);
-    client.query("DROP TABLE products;", function() { cb(); });
-  },
-  tearDown: function(cb) {
     client.query("DROP TABLE products;", function() { cb(); });
   },
   'test creating a table': function(test) {
@@ -17,6 +14,16 @@ module.exports = {
       client.query("DESCRIBE products;", function(err, result) {
         if (err) throw err;
         // if no error table exists
+        test.done();
+      });
+    });
+  },
+  'test creating a existing table returns error': function(test) {
+    db = this.db;
+    db.createTable('products', function(err) {
+      if (err) throw err;
+      db.createTable('products', function(err) {
+        test.equal(err.constructor, Seq.errors.TableAlreadyExistsError, "Error should be of Type TableAlreadyExistsError");
         test.done();
       });
     });
