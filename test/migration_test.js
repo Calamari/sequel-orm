@@ -285,8 +285,23 @@ module.exports.updateTable = {
       if (err) throw err;
       client.query("DESCRIBE tasks;", function(err, result) {
         if (err) throw err;
-        test.equal(result.length, 5, 'We should have one additional fields now');
+        test.equal(result.length, 5, 'We should have one additional field now');
         test.equal(result[4].Field, 'test');
+        test.done();
+      });
+    });
+  },
+  'test remove columns from table': function(test) {
+    this.db.updateTable('tasks', function(table) {
+      table.removeColumn('done', Seq.dataTypes.VARCHAR());
+    }, function(err) {
+      if (err) throw err;
+      client.query("DESCRIBE tasks;", function(err, result) {
+        if (err) throw err;
+        test.equal(result.length, 3, 'We should have one field less now');
+        test.equal(result[0].Field, 'id');
+        test.equal(result[1].Field, 'name');
+        test.equal(result[2].Field, 'created_at');
         test.done();
       });
     });
