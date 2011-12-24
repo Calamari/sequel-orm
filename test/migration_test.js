@@ -333,5 +333,84 @@ module.exports.updateTable = {
         test.done();
       });
     });
+  },
+  'test removes a single column unique': function(test) {
+    this.db.updateTable('tasks', function(table) {
+      table.addUniqueKey('done');
+      table.addUniqueKey('name');
+    }, function(err) {
+      if (err) throw err;
+      this.db.updateTable('tasks', function(table) {
+        table.removeUniqueKey('done');
+      }, function(err) {
+        if (err) throw err;
+        client.query("DESCRIBE tasks;", function(err, result) {
+          if (err) throw err;
+          test.equal(result.length, 4, 'We should still have four fields');
+          test.equal(result[2].Key, '');
+          test.equal(result[1].Key, 'UNI');
+          test.done();
+        });
+      });
+    });
+  },
+  'test removes a multi column unique': function(test) {
+    this.db.updateTable('tasks', function(table) {
+      table.addUniqueKey(['done', 'name']);
+      table.addUniqueKey('created_at');
+    }, function(err) {
+      if (err) throw err;
+      this.db.updateTable('tasks', function(table) {
+        table.removeUniqueKey(['done', 'name']);
+      }, function(err) {
+        if (err) throw err;
+        client.query("DESCRIBE tasks;", function(err, result) {
+          if (err) throw err;
+          test.equal(result.length, 4, 'We should still have four fields');
+          test.equal(result[1].Key, '');
+          test.equal(result[2].Key, '');
+          test.equal(result[3].Key, 'UNI');
+          test.done();
+        });
+      });
+    });
+  },
+  'test removes a non existing key returns error': function(test) {
+    this.db.updateTable('tasks', function(table) {
+      table.addUniqueKey(['done', 'name']);
+    }, function(err) {
+      if (err) throw err;
+      this.db.updateTable('tasks', function(table) {
+        table.removeUniqueKey('name');
+      }, function(err) {
+        test.equal(err.constructor, Seq.errors.ColumnNotFoundError, "Error should be of Type ColumnNotFoundError");
+        test.done();
+      });
+    });
+  },
+  'test removing of a multi column from createTable': function(test) {
+    var db = this.db;
+    client.query("DROP TABLE IF EXISTS more_tasks;", function(err) {
+      if (err) throw err;
+      db.createTable('more_tasks', function(table) {
+        table.addColumn('name', Seq.dataTypes.VARCHAR());
+        table.addColumn('done', Seq.dataTypes.VARCHAR());
+        table.addUniqueKey(['done', 'name']);
+      }, function(err) {
+        if (err) throw err;
+        db.updateTable('more_tasks', function(table) {
+          table.removeUniqueKey(['done', 'name']);
+        }, function(err) {
+          if (err) throw err;
+          client.query("DESCRIBE more_tasks;", function(err, result) {
+            if (err) throw err;
+            test.equal(result.length, 3, 'We should still have three fields');
+            test.equal(result[1].Key, '');
+            test.equal(result[2].Key, '');
+            test.done();
+          });
+        });
+      });
+    });
   }
 };
