@@ -243,3 +243,39 @@ module.exports.createTable = {
     });
   }
 };
+
+module.exports.updateTable = {
+  setUp: function(cb) {
+    var db = Seq.create(TEST_CONFIG);
+    this.db = db;
+    client.query("DROP TABLE tasks;", function(err) {
+      if (err) throw err;
+      db.createTable('tasks', function(table) {
+        table.addColumn('name', Seq.dataTypes.VARCHAR());
+        table.addColumn('done', Seq.dataTypes.VARCHAR());
+        table.addColumn('created_at', Seq.dataTypes.VARCHAR());
+      }, function(err) {
+        if (err) throw err;
+        cb();
+      });
+    });
+  },
+  'test if updateTable takes a function as parameter and a callback': function(test) {
+    test.expect(1);
+    this.db.updateTable('tasks', function(table) {
+      test.ok(table);
+    }, function(err) {
+      if (err) throw err;
+      test.done();
+    });
+  },
+  'test if updateTable returns error if table does not exist': function(test) {
+    test.expect(2);
+    this.db.updateTable('not_there', function(table) {
+      test.ok(table);
+    }, function(err) {
+      test.equal(err.constructor, Seq.errors.TableNotFoundError, "Error should be of Type TableNotFoundError");
+      test.done();
+    });
+  }
+};
