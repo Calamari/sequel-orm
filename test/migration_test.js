@@ -305,5 +305,33 @@ module.exports.updateTable = {
         test.done();
       });
     });
+  },
+  'test make a single column unique': function(test) {
+    this.db.updateTable('tasks', function(table) {
+      table.addUniqueKey('done');
+    }, function(err) {
+      if (err) throw err;
+      client.query("DESCRIBE tasks;", function(err, result) {
+        if (err) throw err;
+        test.equal(result.length, 4, 'We should still have four fields');
+        test.equal(result[2].Key, 'UNI');
+        test.done();
+      });
+    });
+  },
+  'test make a multi column unique': function(test) {
+    this.db.updateTable('tasks', function(table) {
+      table.addUniqueKey(['done', 'name']);
+      table.addUniqueKey('created_at');
+    }, function(err) {
+      if (err) throw err;
+      client.query("DESCRIBE tasks;", function(err, result) {
+        if (err) throw err;
+        test.equal(result.length, 4, 'We should still have four fields');
+        test.equal(result[2].Key, 'MUL');
+        test.equal(result[3].Key, 'UNI');
+        test.done();
+      });
+    });
   }
 };
