@@ -277,5 +277,18 @@ module.exports.updateTable = {
       test.equal(err.constructor, Seq.errors.TableNotFoundError, "Error should be of Type TableNotFoundError");
       test.done();
     });
+  },
+  'test add columns to table': function(test) {
+    this.db.updateTable('tasks', function(table) {
+      table.addColumn('test', Seq.dataTypes.VARCHAR());
+    }, function(err) {
+      if (err) throw err;
+      client.query("DESCRIBE tasks;", function(err, result) {
+        if (err) throw err;
+        test.equal(result.length, 5, 'We should have one additional fields now');
+        test.equal(result[4].Field, 'test');
+        test.done();
+      });
+    });
   }
 };
