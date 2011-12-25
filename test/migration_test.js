@@ -252,8 +252,8 @@ module.exports.updateTable = {
       if (err) throw err;
       db.createTable('tasks', function(table) {
         table.addColumn('name', Seq.dataTypes.VARCHAR());
-        table.addColumn('done', Seq.dataTypes.VARCHAR());
-        table.addColumn('created_at', Seq.dataTypes.VARCHAR());
+        table.addColumn('done', Seq.dataTypes.BOOLEAN());
+        table.addColumn('created_at', Seq.dataTypes.DATETIME());
       }, function(err) {
         if (err) throw err;
         cb();
@@ -410,6 +410,38 @@ module.exports.updateTable = {
             test.done();
           });
         });
+      });
+    });
+  },
+  'test changing a column name': function(test) {
+    this.db.updateTable('tasks', function(table) {
+      table.changeColumn('done', 'archive', Seq.dataTypes.BOOLEAN());
+    }, function(err) {
+      if (err) throw err;
+      client.query("DESCRIBE tasks;", function(err, result) {
+        if (err) throw err;
+        test.equal(result.length, 4, 'We should still have four fields');
+        test.equal(result[1].Field, 'name');
+        test.equal(result[2].Field, 'archive');
+        test.equal(result[2].Type, 'int(1)');
+        test.equal(result[3].Field, 'created_at');
+        test.done();
+      });
+    });
+  },
+  'test changing column name and definition': function(test) {
+    this.db.updateTable('tasks', function(table) {
+      table.changeColumn('done', 'status', Seq.dataTypes.INT({ length: 2 }));
+    }, function(err) {
+      if (err) throw err;
+      client.query("DESCRIBE tasks;", function(err, result) {
+        if (err) throw err;
+        test.equal(result.length, 4, 'We should still have four fields');
+        test.equal(result[1].Field, 'name');
+        test.equal(result[2].Field, 'status');
+        test.equal(result[2].Type, 'int(2)');
+        test.equal(result[3].Field, 'created_at');
+        test.done();
       });
     });
   }
