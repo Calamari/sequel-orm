@@ -1,8 +1,22 @@
 #!/usr/local/bin/node
 
-var reporter  = require('nodeunit').reporters.default;
+/**
+ * call without parameters to run all tests,
+ * call with parameters to run specific tests (e.g. ./testrunner migration => runs test/migration_test.js)
+ */
+
+var reporter  = require('nodeunit').reporters.default,
+    tests     = process.argv.slice(2);
+
+if (tests.length > 0) {
+  for (var i in tests) {
+    tests[i] = 'test/' + tests[i] + '_test.js';
+  }
+} else {
+  tests = [ 'test/' ]
+}
 
 process.chdir(__dirname);
-reporter.run([ 'test' ], null, function() {
+reporter.run(tests, null, function() {
   process.exit();
 });
