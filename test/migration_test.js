@@ -221,7 +221,7 @@ module.exports.createTable = {
       if (err) throw err;
       client.query("DESCRIBE products;", function(err, result) {
         if (err) throw err;
-        test.equal(result.length, 4, 'We should have a table with three fields');
+        test.equal(result.length, 4, 'We should have a table with four fields');
         test.equal(result[1].Key, 'MUL');
         test.equal(result[2].Key, '');
         test.equal(result[3].Key, '');
@@ -239,6 +239,23 @@ module.exports.createTable = {
           test.ok(err, 'should be errornous because table should be deleted.');
           test.done();
         });
+      });
+    });
+  },
+  'test if created_at and updated_at can be added via method': function(test) {
+    this.db.createTable('products', function(table) {
+      table.addTimestamps();
+    }, function(err) {
+      if (err) throw err;
+      client.query("DESCRIBE products;", function(err, result) {
+        if (err) throw err;
+        test.equal(result.length, 3, 'We should have a table with three fields');
+        test.equal(result[0].Field, 'id');
+        test.equal(result[1].Field, 'created_at');
+        test.equal(result[1].Type, 'datetime');
+        test.equal(result[2].Field, 'updated_at');
+        test.equal(result[2].Type, 'datetime');
+        test.done();
       });
     });
   }
