@@ -6,7 +6,9 @@ var Seq = require(__dirname + '/..'),
 module.exports.createTable = {
   setUp: function(cb) {
     this.db = Seq.create(TEST_CONFIG);
-    client.query("DROP TABLE products;", function() { cb(); });
+    client.query("DROP TABLE products;", function() {
+      client.query("DROP TABLE my_products;", function() { cb(); });
+    });
   },
   'test creating a table': function(test) {
     this.db.createTable('products', function(err) {
@@ -258,6 +260,24 @@ module.exports.createTable = {
         test.done();
       });
     });
+  },
+  'test if table name and fields will be underscored': function(test) {
+    this.db.createTable('MyProducts', function(table) {
+      table.addColumn('TestName', Seq.dataTypes.VARCHAR());
+      table.addColumn('isArchived', Seq.dataTypes.BOOLEAN());
+    }, function(err) {
+      if (err) throw err;
+      client.query("DESCRIBE my_products;", function(err, result) {
+        if (err) throw err;
+        test.equal(result.length, 3, 'We should have a table with three fields');
+        test.equal(result[0].Field, 'id');
+        test.equal(result[1].Field, 'test_name');
+        test.equal(result[1].Type, 'varchar(255)');
+        test.equal(result[2].Field, 'is_archived');
+        test.equal(result[2].Type, 'int(1)');
+        test.done();
+      });
+    });
   }
 };
 
@@ -458,6 +478,43 @@ module.exports.updateTable = {
         test.equal(result[2].Field, 'status');
         test.equal(result[2].Type, 'int(2)');
         test.equal(result[3].Field, 'created_at');
+        test.done();
+      });
+    });
+  },
+  'test underscoring when updating a table': function(test) {
+    this.db.updateTable('Tasks', function(table) {
+      table.addColumn('TestName', Seq.dataTypes.VARCHAR({ length: 200 }));
+      table.addColumn('isArchived', Seq.dataTypes.BOOLEAN());
+    }, function(err) {
+      if (err) throw err;
+      client.query("DESCRIBE tasks;", function(err, result) {
+        if (err) throw err;
+        test.equal(result.length, 6, 'We should have a table with two more fields now');
+        test.equal(result[0].Field, 'id');
+        test.equal(result[1].Field, 'name');
+        test.equal(result[2].Field, 'done');
+        test.equal(result[3].Field, 'created_at');
+        test.equal(result[4].Field, 'test_name');
+        test.equal(result[4].Type, 'varchar(200)');
+        test.equal(result[5].Field, 'is_archived');
+        test.equal(result[5].Type, 'int(1)');
+        test.done();
+      });
+    });
+  },
+  'test underscored access when updating a table': function(test) {
+    this.db.updateTable('Tasks', function(table) {
+      table.changeColumn('createdAt', 'reallyCreatedAt', Seq.dataTypes.VARCHAR({ length: 200 }));
+    }, function(err) {
+      if (err) throw err;
+      client.query("DESCRIBE tasks;", function(err, result) {
+        if (err) throw err;
+        test.equal(result.length, 4, 'We should have a table with two more fields now');
+        test.equal(result[0].Field, 'id');
+        test.equal(result[1].Field, 'name');
+        test.equal(result[2].Field, 'done');
+        test.equal(result[3].Field, 'really_created_at');
         test.done();
       });
     });
