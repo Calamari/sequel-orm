@@ -20,7 +20,7 @@ module.exports.createTable = {
       });
     });
   },
-  'test creating a existing table returns error': function(test) {
+  'test creating an existing table returns error': function(test) {
     db = this.db;
     db.createTable('products', function(err) {
       if (err) throw err;
