@@ -8,14 +8,12 @@ module.exports.modelDefinition = {
     var db  = Seq.create(TEST_CONFIG);
     this.db = db;
     client.query("DROP TABLE products;", function() {
-      db.createTable('products', function(table) {
+      Seq.createTable('products', function(table) {
         table.addColumn('name', Seq.dataTypes.VARCHAR());
         table.addColumn('price', Seq.dataTypes.INT());
         table.addTimestamps();
-      }, function(err) {
-        if (err) throw err;
-        cb();
       });
+      cb();
     });
   },
   'test creating a model using data types': function(test) {
@@ -44,11 +42,31 @@ module.exports.modelDefinition = {
       updatedAt: Seq.dataTypes.DATETIME()
     });
     test.equal(Product.fields.length, 5);
-    test.equal(Product.fields[0], 'id');
-    test.equal(Product.fields[1], 'name');
-    test.equal(Product.fields[2], 'price');
-    test.equal(Product.fields[3], 'createdAt');
-    test.equal(Product.fields[4], 'updatedAt');
+    test.ok(Product.fields.indexOf('id') !== -1);
+    test.ok(Product.fields.indexOf('name') !== -1);
+    test.ok(Product.fields.indexOf('price') !== -1);
+    test.ok(Product.fields.indexOf('createdAt') !== -1);
+    test.ok(Product.fields.indexOf('updatedAt') !== -1);
+    test.done();
+  },
+  'test create model from migration': function(test) {
+    var Product = Seq.defineModel('Product', Seq.getTableFromMigration('products'));
+    test.equal(Product.fields.length, 5);
+    test.ok(Product.fields.indexOf('id') !== -1);
+    test.ok(Product.fields.indexOf('name') !== -1);
+    test.ok(Product.fields.indexOf('price') !== -1);
+    test.ok(Product.fields.indexOf('createdAt') !== -1);
+    test.ok(Product.fields.indexOf('updatedAt') !== -1);
+    test.done();
+  },
+  'test retrieving of Model throuh SequelORM class': function(test) {
+    var Product = Seq.getModel('Product');
+    test.equal(Product.fields.length, 5);
+    test.ok(Product.fields[0], 'id');
+    test.ok(Product.fields[1], 'name');
+    test.ok(Product.fields[2], 'price');
+    test.ok(Product.fields[3], 'createdAt');
+    test.ok(Product.fields[4], 'updatedAt');
     test.done();
   }
 };
