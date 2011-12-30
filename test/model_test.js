@@ -259,6 +259,26 @@ module.exports.modelInstanciation = {
         test.done();
       });
     });
+  },
+  'test what this is in instance methods': function(test) {
+    var Item = Seq.defineModel('Item', Seq.getTableFromMigration('items'), {
+      instanceMethods: {
+        doublePrice: function() {
+          this.price *= 2;
+        },
+        sayName: function() {
+          return 'Hello ' + this.name;
+        }
+      }
+    });
+    var item = Item.create({
+      name: 'Bob',
+      price: 21
+    });
+    item.doublePrice();
+    test.equal(item.price, 42);
+    test.equal(item.sayName(), 'Hello Bob');
+    test.done();
   }
 };
 
