@@ -279,7 +279,21 @@ module.exports.modelInstanciation = {
     test.equal(item.price, 42);
     test.equal(item.sayName(), 'Hello Bob');
     test.done();
-  }
+  },
+  'test static methods and this context': function(test) {
+    var Item = Seq.defineModel('Item', Seq.getTableFromMigration('items'), {
+      classMethods: {
+        doSomething: function() {
+          return this;
+        },
+        sayName: function() {
+          return 'Hello ' + this.name;
+        }
+      }
+    });
+    test.equal(Item.doSomething(), Item);
+    test.done();
+  },
 };
 
 /**
