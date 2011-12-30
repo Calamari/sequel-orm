@@ -191,6 +191,30 @@ module.exports.modelInstanciation = {
       }, 20);
     });
   },
+  'test if record can be loaded with id': function(test) {
+    var Item = Seq.getModel('Item'),
+        item = Item.create({
+          name: 'Willy',
+          price: 2
+        });
+
+    item.save(function(err) {
+      if (err) throw err;
+      Item.find(1, function(err, foundItem) {
+        if (err) throw err;
+        test.equal(item.id, foundItem.id);
+        test.equal(item.name, foundItem.name);
+        test.equal(item.price, foundItem.price);
+//        test.equal(Math.floor(item.getData().createdAt.getTime() / 1000), foundItem.getData().createdAt.getTime() / 1000);
+
+        Item.find(2, function(err, foundItem) {
+          test.equal(err.constructor, Seq.errors.ItemNotFoundError);
+          test.equal(foundItem, null);
+          test.done();
+        });
+      });
+    });
+  },
   'test adding instance methods': function(test) {
     var Item = Seq.defineModel('Item', Seq.getTableFromMigration('items'), {
       instanceMethods: {
@@ -208,5 +232,42 @@ module.exports.modelInstanciation = {
     test.equal(item.testMe(), 42);
     test.equal(item.foo('meauw'), 'wuff meauw');
     test.done();
+  },
+  'test instance methods work on loaded items': function(test) {
+    var Item = Seq.defineModel('Item', Seq.getTableFromMigration('items'), {
+      instanceMethods: {
+        testMe: function() {
+          return 42
+        },
+        foo: function(bar) {
+          return 'wuff ' + bar;
+        }
+      }
+    });
+    var item = Item.create({
+      name: 'Willy',
+      price: 2
+    });
+    item.save(function(err) {
+      if (err) throw err;
+      Item.find(1, function(err, foundItem) {
+        if (err) throw err;
+        test.equal(typeof foundItem.testMe, 'function');
+        test.equal(typeof foundItem.foo, 'function');
+        test.equal(foundItem.testMe(), 42);
+        test.equal(foundItem.foo('meauw'), 'wuff meauw');
+        test.done();
+      });
+    });
   }
 };
+
+/**
+ TODO:
+  Test datetimes mit before save and after load methods
+  Define custom before save methods
+  
+  
+  later on:
+  caching (remember item,id combo in cache and don't query for them)
+ */
