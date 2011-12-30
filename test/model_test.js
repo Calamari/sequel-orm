@@ -154,6 +154,43 @@ module.exports.modelInstanciation = {
       });
     });
   },
+  'test if saved instance can be changed and is dirty and saveable': function(test) {
+    var Item = Seq.getModel('Item'),
+        item = Item.create({
+          name: 'Willy',
+          price: 2
+        }),
+        now = new Date();
+    item.save(function(err, savedItem) {
+      if (err) throw err;
+      test.equal(item.id, 1);
+      test.equal(item.isNew, false);
+      test.equal(item.isDirty, false);
+
+      item.name = 'Maya';
+      test.equal(item.isNew, false);
+      test.equal(item.isDirty, true);
+      setTimeout(function() {
+        var updateNow = new Date();
+        item.save(function(err, savedItem) {
+          if (err) throw err;
+          test.equal(item.id, 1);
+          test.equal(item.isNew, false);
+          test.equal(item.isDirty, false);
+          test.equal(savedItem.name, 'Maya');
+          test.ok(Math.abs(item.createdAt.getTime() - now.getTime()) < 10, 'createdAt time is about the same');
+          test.ok(Math.abs(item.updatedAt.getTime() - updateNow.getTime()) < 10, 'updatedAt time should be a newer date');
+
+          client.query("SELECT * FROM items", function(err, results) {
+            if (err) throw err;
+            test.equal(results[0].name, 'Maya');
+            test.equal(results[0].price, 2);
+            test.done();
+          });
+        });
+      }, 20);
+    });
+  },
   'test adding instance methods': function(test) {
     var Item = Seq.defineModel('Item', Seq.getTableFromMigration('items'), {
       instanceMethods: {
