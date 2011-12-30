@@ -7,13 +7,21 @@ var Seq         = require(__dirname + '/..'),
 module.exports.tableDefinition = {
   setUp: function(cb) {
     Seq.clearTableDefinitions();
-    Seq.createTable('products', function(table) {
-      table.addColumn('title', Seq.dataTypes.VARCHAR({ unique: true }));
-      table.addColumn('text', Seq.dataTypes.TEXT());
-      table.addColumn('size', Seq.dataTypes.INT({ length: 5 }));
-      table.addTimestamps();
+    client.query("DROP TABLE items;", function() {
+      Seq.createTable('products', function(table) {
+        table.addColumn('title', Seq.dataTypes.VARCHAR({ unique: true }));
+        table.addColumn('text', Seq.dataTypes.TEXT());
+        table.addColumn('size', Seq.dataTypes.INT({ length: 5 }));
+        table.addTimestamps();
+      });
+      cb();
     });
-    cb();
+  },
+  'test that Seq.createTable does not sync automatically': function(test) {
+    client.query("DESCRIBE products;", function(err, result) {
+      test.ok(err, 'the table should not exist');
+      test.done();
+    });
   },
   'test getting table defintion from migration works': function(test) {
     var ProductTable = Seq.getTableFromMigration('Product');
