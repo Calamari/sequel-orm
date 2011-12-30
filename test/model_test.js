@@ -134,6 +134,26 @@ module.exports.modelInstanciation = {
       });
     });
   },
+  'test if timestamps are automatically set on save': function(test) {
+    var Item = Seq.getModel('Item'),
+        item = Item.create({
+          name: 'Jane',
+          price: 23
+        }),
+        now = new Date();
+    item.save(function(err, savedItem) {
+      if (err) throw err;
+      test.ok(Math.abs(item.createdAt.getTime() - now.getTime()) < 10, 'createdAt time is about the same');
+      test.ok(Math.abs(item.updatedAt.getTime() - now.getTime()) < 10, 'updatedAt time is about the same');
+      client.query("SELECT * FROM items", function(err, results) {
+        if (err) throw err;
+        // TODO: those are off by one hour:
+//        test.equal(results[0].created_at, now.toUTCString());
+//        test.equal(results[0].updated_at, now.toUTCString());
+        test.done();
+      });
+    });
+  },
   'test adding instance methods': function(test) {
     var Item = Seq.defineModel('Item', Seq.getTableFromMigration('items'), {
       instanceMethods: {
