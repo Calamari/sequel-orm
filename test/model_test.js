@@ -294,10 +294,29 @@ module.exports.modelInstanciation = {
     test.equal(Item.doSomething(), Item);
     test.done();
   },
+  'test if save will be delayed it no connection exists': function(test) {
+    Seq.removeConnection();
+    var Item = Seq.getModel('Item'),
+        item = Item.create({
+          name: 'Willy',
+          price: 2
+        });
+    item.save(function(err) {
+      client.query("SELECT * FROM items", function(err, results) {
+        if (err) throw err;
+        test.equal(results.length, 1);
+        test.done();
+      });
+    });
+    var db  = Seq.create(TEST_CONFIG);
+  }
 };
 
 /**
  TODO:
+  find (with where parameters)
+  findAll
+  findAllAsHash
   Test datetimes mit before save and after load methods
   Define custom before save methods
   
