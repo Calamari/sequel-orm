@@ -77,16 +77,13 @@ module.exports.modelInstanciation = {
     var db  = Seq.create(TEST_CONFIG);
     this.db = db;
     client.query("DROP TABLE items;", function() {
-      Seq.createTable('items', function(table) {
+      var tableDef = function(table) {
         table.addColumn('name', Seq.dataTypes.VARCHAR());
         table.addColumn('price', Seq.dataTypes.INT());
         table.addTimestamps();
-      });
-      db.createTable('items', function(table) {
-        table.addColumn('name', Seq.dataTypes.VARCHAR());
-        table.addColumn('price', Seq.dataTypes.INT());
-        table.addTimestamps();
-      }, function() {
+      };
+      Seq.createTable('items', tableDef);
+      db.createTable('items', tableDef, function() {
         cb();
       });
     });
@@ -309,6 +306,33 @@ module.exports.modelInstanciation = {
       });
     });
     var db  = Seq.create(TEST_CONFIG);
+  }
+};
+
+module.exports['model.find methods'] = {
+  setUp: function(cb) {
+    var db  = Seq.create(TEST_CONFIG);
+    this.db = db;
+    client.query("DROP TABLE things;", function() {
+      var tableDef = function(table) {
+        table.addColumn('name', Seq.dataTypes.VARCHAR());
+        table.addColumn('number', Seq.dataTypes.INT());
+        table.addColumn('float', Seq.dataTypes.FLOAT());
+        table.addColumn('time', Seq.dataTypes.DATETIME());
+        table.addColumn('bool', Seq.dataTypes.BOOLEAN());
+        table.addTimestamps();
+      };
+      Seq.createTable('things', tableDef);
+      Seq.defineModel('Thing', Seq.getTableFromMigration('things'));
+      db.createTable('things', tableDef, function() {
+        client.query("INSERT INTO things (name, number, float, text)")
+        cb();
+      });
+    });
+  },
+  'test find with where clause': function(test) {
+    
+    test.done();
   }
 };
 
