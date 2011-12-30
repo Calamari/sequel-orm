@@ -103,6 +103,26 @@ module.exports['model.find methods'] = {
       test.equal(thing.bool, false);
       test.done();
     });
+  },
+  'test find with where clause and order desc': function(test) {
+    var Thing = Seq.getModel('Thing');
+    Thing.find({ where: "name LIKE '%ll%'", order: 'id DESC' }, function(err, thing) {
+      if (err) throw err;
+      test.equal(thing.name, 'Sally');
+      test.equal(thing.number, 42);
+      test.equal(thing.id, 3);
+      test.equal(thing.bool, true);
+      test.done();
+    });
+  },
+  'test find without where clause but with order name desc': function(test) {
+    var Thing = Seq.getModel('Thing');
+    Thing.find({  order: 'name DESC' }, function(err, thing) {
+      if (err) throw err;
+      test.equal(thing.name, 'Zoe');
+      test.equal(thing.id, 4);
+      test.done();
+    });
   }
 };
 
