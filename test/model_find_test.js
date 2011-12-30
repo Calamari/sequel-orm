@@ -123,15 +123,25 @@ module.exports['model.find methods'] = {
       test.equal(thing.id, 4);
       test.done();
     });
+  },
+  'test if where clause can be secured': function(test) {
+    var Thing = Seq.getModel('Thing');
+    // NOTE: The ? thing is only useful for use within where clauses, if used in order or limit, check
+    // that you put the input params in the right order (where then order then limit)
+    Thing.find({ where: "name LIKE ? AND number = ?", order: '? DESC' }, ['B%', 20, 'name'], function(err, thing) {
+      if (err) throw err;
+      test.equal(thing.name, 'Bob');
+      test.equal(thing.number, 20);
+      test.equal(thing.id, 2);
+      test.done();
+    });
   }
 };
 
 /**
  TODO:
-  find with:
-    order
-    limit
   findAll
+    wiht limit
   findAllAsHash
   Test datetimes mit before save and after load methods
   Define custom before save methods
