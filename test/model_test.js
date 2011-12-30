@@ -7,8 +7,8 @@ module.exports.modelDefinition = {
   setUp: function(cb) {
     var db  = Seq.create(TEST_CONFIG);
     this.db = db;
-    client.query("DROP TABLE products;", function() {
-      Seq.createTable('products', function(table) {
+    client.query("DROP TABLE items;", function() {
+      Seq.createTable('items', function(table) {
         table.addColumn('name', Seq.dataTypes.VARCHAR());
         table.addColumn('price', Seq.dataTypes.INT());
         table.addTimestamps();
@@ -17,15 +17,15 @@ module.exports.modelDefinition = {
     });
   },
   'test creating a model using data types': function(test) {
-    var Product = Seq.defineModel('Product', {
+    var Product = Seq.defineModel('Item', {
       name: Seq.dataTypes.VARCHAR(),
       price: Seq.dataTypes.INT(),
       createdAt: Seq.dataTypes.DATETIME(),
       updatedAt: Seq.dataTypes.DATETIME()
     });
     test.equal(typeof Product, 'object');
-    test.equal(Product.name, 'Product');
-    test.equal(Product.tableName, 'products');
+    test.equal(Product.name, 'Item');
+    test.equal(Product.tableName, 'items');
     test.done();
   },
   'test getting tableName': function(test) {
@@ -35,7 +35,7 @@ module.exports.modelDefinition = {
     test.done();
   },
   'test creating a model has fields': function(test) {
-    var Product = Seq.defineModel('Product', {
+    var Product = Seq.defineModel('Item', {
       name: Seq.dataTypes.VARCHAR(),
       price: Seq.dataTypes.INT(),
       createdAt: Seq.dataTypes.DATETIME(),
@@ -50,7 +50,7 @@ module.exports.modelDefinition = {
     test.done();
   },
   'test create model from migration': function(test) {
-    var Product = Seq.defineModel('Product', Seq.getTableFromMigration('products'));
+    var Product = Seq.defineModel('Item', Seq.getTableFromMigration('items'));
     test.equal(Product.fields.length, 5);
     test.ok(Product.fields.indexOf('id') !== -1);
     test.ok(Product.fields.indexOf('name') !== -1);
@@ -60,7 +60,7 @@ module.exports.modelDefinition = {
     test.done();
   },
   'test retrieving of Model throuh SequelORM class': function(test) {
-    var Product = Seq.getModel('Product');
+    var Product = Seq.getModel('Item');
     test.equal(Product.fields.length, 5);
     test.ok(Product.fields[0], 'id');
     test.ok(Product.fields[1], 'name');
