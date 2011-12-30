@@ -1,7 +1,8 @@
-var Seq = require(__dirname + '/..'),
-    mysql = require('mysql'),
+var Seq         = require(__dirname + '/..'),
+    jaz         = require('jaz-toolkit'),
+    mysql       = require('mysql'),
     TEST_CONFIG = require(__dirname + '/test_config'),
-    client = mysql.createClient(TEST_CONFIG);
+    client      = mysql.createClient(TEST_CONFIG);
 
 module.exports.modelDefinition = {
   setUp: function(cb) {
@@ -81,7 +82,13 @@ module.exports.modelInstanciation = {
         table.addColumn('price', Seq.dataTypes.INT());
         table.addTimestamps();
       });
-      cb();
+      db.createTable('items', function(table) {
+        table.addColumn('name', Seq.dataTypes.VARCHAR());
+        table.addColumn('price', Seq.dataTypes.INT());
+        table.addTimestamps();
+      }, function() {
+        cb();
+      });
     });
   },
   'test creating an instance with some given data': function(test) {
@@ -106,6 +113,26 @@ module.exports.modelInstanciation = {
     test.equal(item.isNew, true);
     test.equal(item.isDirty, true);
     test.done();
+  },
+  'test if instance can be saved': function(test) {
+    var Item = Seq.getModel('Item'),
+        item = Item.create({
+          name: 'John',
+          price: 42
+        });
+    item.save(function(err, savedItem) {
+      if (err) throw err;
+      test.equal(item.isNew, false);
+      test.equal(item.isDirty, false);
+      test.equal(item.id, 1);
+      test.ok(jaz.Object.isEqual(item, savedItem));
+      client.query("SELECT * FROM items", function(err, results) {
+        if (err) throw err;
+        test.equal(results[0].name, 'John');
+        test.equal(results[0].price, 42);
+        test.done();
+      });
+    });
   },
   'test adding instance methods': function(test) {
     var Item = Seq.defineModel('Item', Seq.getTableFromMigration('items'), {

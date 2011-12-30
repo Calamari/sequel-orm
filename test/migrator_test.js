@@ -44,7 +44,7 @@ module.exports.tableDefinition = {
     test.ok(ProductTable.size.equals(Seq.dataTypes.INT({ length: 5 })));
     test.ok(ProductTable.createdAt.equals(Seq.dataTypes.DATETIME()));
     test.ok(ProductTable.updatedAt.equals(Seq.dataTypes.DATETIME()));
-    test.done();    
+    test.done();
   },
   'test we can clear all table definitions': function(test) {
     Seq.clearTableDefinitions();
