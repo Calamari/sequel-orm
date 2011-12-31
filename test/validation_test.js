@@ -4,7 +4,17 @@ var Seq         = require(__dirname + '/..'),
     TEST_CONFIG = require(__dirname + '/test_config'),
     client      = mysql.createClient(TEST_CONFIG);
 
-module.exports = {
+module.exports['basics'] = {
+  'test validate method will be fired': function(test) {
+    var Item = Seq.defineModel('Item', {
+      name: Seq.dataTypes.VARCHAR()
+    });
+    test.equal(typeof Item.create().validate, 'function');
+    test.done();
+  }
+};
+
+module.exports['required'] = {
   setUp: function(cb) {
     Seq.removeConnection();
     this.RequireItem = Seq.defineModel('Item', {
@@ -12,13 +22,6 @@ module.exports = {
       maybe: Seq.dataTypes.VARCHAR()
     });
     cb();
-  },
-  'test validate method will be fired': function(test) {
-    var Item = Seq.defineModel('Item', {
-      name: Seq.dataTypes.VARCHAR()
-    });
-    test.equal(typeof Item.create().validate, 'function');
-    test.done();
   },
   'test required columns will fire if not set': function(test) {
     var item = this.RequireItem.create();
@@ -43,6 +46,7 @@ module.exports = {
     test.done();
   }
 };
+
 module.exports['default validations'] = {
   'test that not used if empty': function(test) {
     var Item = Seq.defineModel('Item', {
