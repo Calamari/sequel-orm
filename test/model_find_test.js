@@ -15,6 +15,7 @@ module.exports['model.find methods'] = {
         table.addColumn('float', Seq.dataTypes.FLOAT());
         table.addColumn('time', Seq.dataTypes.DATETIME());
         table.addColumn('bool', Seq.dataTypes.BOOLEAN());
+        table.addColumn('someText', Seq.dataTypes.TEXT());
         table.addTimestamps();
       };
       Seq.createTable('things', tableDef);
@@ -22,15 +23,15 @@ module.exports['model.find methods'] = {
       db.createTable('things', tableDef, function() {
         var values = [],
             params = [];
-        values.push('(?,?,?,?,?,?)');
-        params.push([ 1, 'Bill', 42, 23.3, new Date(2001, 3, 3), false]);
-        values.push('(?,?,?,?,?,?)');
-        params.push([ 2, 'Bob', 20, 2232, new Date(2011, 12, 24), false]);
-        values.push('(?,?,?,?,?,?)');
-        params.push([ 3, 'Sally', 42, 0.666, new Date(1990, 5, 28), true]);
-        values.push('(?,?,?,?,?,?)');
-        params.push([ 4, 'Zoe', -3423, 99.90909, new Date(2000, 1, 1), true]);
-        client.query("INSERT INTO things (`id`, `name`, `number`, `float`, `time`, `bool`) VALUES " + values.join(','), jaz.Array.flatten(params), function(err) {
+        values.push('(?,?,?,?,?,?,?)');
+        params.push([ 1, 'Bill', 42, 23.3, new Date(2001, 3, 3), false, 'take me']);
+        values.push('(?,?,?,?,?,?,?)');
+        params.push([ 2, 'Bob', 20, 2232, new Date(2011, 12, 24), false, '']);
+        values.push('(?,?,?,?,?,?,?)');
+        params.push([ 3, 'Sally', 42, 0.666, new Date(1990, 5, 28), true, '']);
+        values.push('(?,?,?,?,?,?,?)');
+        params.push([ 4, 'Zoe', -3423, 99.90909, new Date(2000, 1, 1), true, 'I was here']);
+        client.query("INSERT INTO things (`id`, `name`, `number`, `float`, `time`, `bool`, `some_text`) VALUES " + values.join(','), jaz.Array.flatten(params), function(err) {
           if (err) throw err;
           cb();
         });
@@ -194,7 +195,7 @@ module.exports['model.find methods'] = {
   },
   'test findAll method can take an Array as limit': function(test) {
     var Thing = Seq.getModel('Thing');
-    Thing.findAll({ limit: [1,2]}, function(err, things) {
+    Thing.findAll({ limit: [1,2] }, function(err, things) {
       if (err) throw err;
       test.equal(things.length, 2);
       test.equal(things[0].name, 'Bob');
@@ -203,12 +204,53 @@ module.exports['model.find methods'] = {
       test.equal(things[1].id, 3);
       test.done();
     });
+  },
+  'test findAllAsHash method works with default id as key': function(test) {
+    var Thing = Seq.getModel('Thing');
+    Thing.findAllAsHash({ limit: [1,2] }, function(err, things) {
+      if (err) throw err;
+      test.equal(typeof things, 'object');
+      test.equal(things[2].name, 'Bob');
+      test.equal(things[2].id, 2);
+      test.equal(things[3].name, 'Sally');
+      test.equal(things[3].id, 3);
+      test.done();
+    });
+  },
+  'test findAllAsHash method works with name as key': function(test) {
+    var Thing = Seq.getModel('Thing');
+    Thing.findAllAsHash({ key: 'name', limit: [1,2] }, function(err, things) {
+      if (err) throw err;
+      test.equal(typeof things, 'object');
+      test.equal(things['Bob'].name, 'Bob');
+      test.equal(things['Bob'].id, 2);
+      test.equal(things['Sally'].name, 'Sally');
+      test.equal(things['Sally'].id, 3);
+      test.done();
+    });
+  },
+  'test findAllAsHash method works with camelized key': function(test) {
+    var Thing = Seq.getModel('Thing');
+    Thing.findAllAsHash({ key: 'someText', where: "name='Zoe'" }, function(err, things) {
+      if (err) throw err;
+      test.equal(typeof things, 'object');
+      test.equal(things['I was here'].name, 'Zoe');
+      test.equal(things['I was here'].id, 4);
+      test.done();
+    });
+  },
+  'test findAllAsHash method returns error if key is not a valid column': function(test) {
+    var Thing = Seq.getModel('Thing');
+    Thing.findAllAsHash({ key: 'dontThere', limit: [1,2] }, function(err, things) {
+      test.equal(err.constructor, Seq.errors.NotValidColumnError);
+      test.equal(things, null);
+      test.done();
+    });
   }
 };
 
 /**
  TODO:
-  findAllAsHash
   Test datetimes mit before save and after load methods
   Define custom before save methods
   
