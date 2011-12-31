@@ -191,6 +191,18 @@ module.exports['model.find methods'] = {
       test.equal(things[3].id, 4);
       test.done();
     });
+  },
+  'test findAll method can take an Array as limit': function(test) {
+    var Thing = Seq.getModel('Thing');
+    Thing.findAll({ limit: [1,2]}, function(err, things) {
+      if (err) throw err;
+      test.equal(things.length, 2);
+      test.equal(things[0].name, 'Bob');
+      test.equal(things[0].id, 2);
+      test.equal(things[1].name, 'Sally');
+      test.equal(things[1].id, 3);
+      test.done();
+    });
   }
 };
 
