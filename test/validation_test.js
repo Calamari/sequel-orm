@@ -257,3 +257,87 @@ module.exports['default validations'] = {
     }
   }
 };
+
+var emailValidator = function(val) {
+  return val.indexOf('@') !== -1;
+};
+
+module.exports['custom validations'] = {
+  'test if custom validator is used and marked as custom': function(test) {
+    var Item = Seq.defineModel('Item', {
+      pseudoEmail: Seq.dataTypes.VARCHAR({ validation: emailValidator })
+    });
+    var item = Item.create({ pseudoEmail: 'bla' });
+    test.equal(item.validate(), false);
+    test.equal(item.errors.length, 1);
+    test.equal(item.errors[0].column, 'pseudoEmail');
+    test.equal(item.errors[0].type, 'custom');
+    item.pseudoEmail = 'bla@blubb.com';
+    test.equal(item.validate(), true);
+    test.equal(item.errors.length, 0);
+    test.done();
+  },
+  'test if custom validators work together with required ': function(test) {
+    var Item = Seq.defineModel('Item', {
+      pseudoEmail: Seq.dataTypes.VARCHAR({ validation: emailValidator, required: true })
+    });
+    var item = Item.create({ pseudoEmail: '' });
+    test.equal(item.validate(), false);
+    test.equal(item.errors.length, 1);
+    test.equal(item.errors[0].column, 'pseudoEmail');
+    test.equal(item.errors[0].type, 'required');
+    item.pseudoEmail = 'no email sorry';
+    test.equal(item.validate(), false);
+    test.equal(item.errors.length, 1);
+    test.equal(item.errors[0].column, 'pseudoEmail');
+    test.equal(item.errors[0].type, 'custom');
+    test.done();
+  },
+  'test more validators as custom ones': function(test) {
+    var Item = Seq.defineModel('Item', {
+      text: Seq.dataTypes.VARCHAR({ validation: {
+        one: function(val) { return val === 'one'; },
+        isO: function(val) { return val.indexOf('o') === 0; }
+      } })
+    });
+    var item = Item.create({ text: '' });
+    test.equal(item.validate(), true);
+    test.equal(item.errors.length, 0);
+
+    item.text = 'two';
+    test.equal(item.validate(), false);
+    test.equal(item.errors.length, 2);
+    test.equal(item.errors[0].column, 'text');
+    test.equal(item.errors[0].type, 'one');
+    test.equal(item.errors[1].column, 'text');
+    test.equal(item.errors[1].type, 'isO');
+
+    item.text = 'o';
+    test.equal(item.validate(), false);
+    test.equal(item.errors.length, 1);
+    test.equal(item.errors[0].column, 'text');
+    test.equal(item.errors[0].type, 'one');
+
+    item.text = 'one';
+    test.equal(item.validate(), true);
+    test.equal(item.errors.length, 0);
+    
+    test.done();
+  },
+  'test error is thrown if no function is given as validator': function(test) {
+    test.throws(function() {
+      var Item = Seq.defineModel('Item', {
+        text: Seq.dataTypes.VARCHAR({ validation: true })
+      });
+    }, Seq.errors.NotAValidatorError);
+    test.done();
+  },
+  'test error is thrown if one of the elements given as validators is not a function': function(test) {
+    test.throws(function() {
+      var Item = Seq.defineModel('Item', {
+        text: Seq.dataTypes.VARCHAR({ validation: { test: function() {}, bla: true } })
+      });
+    }, Seq.errors.NotAValidatorError);
+    test.done();
+  }
+};
