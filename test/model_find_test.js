@@ -50,6 +50,15 @@ module.exports['model.find methods'] = {
       test.done();
     });
   },
+  'test found item is not new and not dirty': function(test) {
+    var Thing = Seq.getModel('Thing');
+    Thing.find(3, function(err, thing) {
+      if (err) throw err;
+      test.equal(thing.isNew, false);
+      test.equal(thing.isDirty, false);
+      test.done();
+    });
+  },
   'test find with id (5) which does not exist': function(test) {
     var Thing = Seq.getModel('Thing');
     Thing.find(5, function(err, thing) {
