@@ -309,7 +309,7 @@ module.exports.modelInstanciation = {
   }
 };
 
-module.exports['model.find methods'] = {
+module.exports['model.remove'] = {
   setUp: function(cb) {
     var db  = Seq.create(TEST_CONFIG);
     this.db = db;
@@ -320,27 +320,61 @@ module.exports['model.find methods'] = {
         table.addColumn('float', Seq.dataTypes.FLOAT());
         table.addColumn('time', Seq.dataTypes.DATETIME());
         table.addColumn('bool', Seq.dataTypes.BOOLEAN());
+        table.addColumn('someText', Seq.dataTypes.TEXT());
         table.addTimestamps();
       };
       Seq.createTable('things', tableDef);
       Seq.defineModel('Thing', Seq.getTableFromMigration('things'));
       db.createTable('things', tableDef, function() {
-        client.query("INSERT INTO things (name, number, float, text)")
-        cb();
+        var values = [],
+            params = [];
+        values.push('(?,?,?,?,?,?,?)');
+        params.push([ 1, 'Bill', 42, 23.3, new Date(2001, 3, 3), false, 'take me']);
+        values.push('(?,?,?,?,?,?,?)');
+        params.push([ 2, 'Bob', 20, 2232, new Date(2011, 12, 24), false, '']);
+        values.push('(?,?,?,?,?,?,?)');
+        params.push([ 3, 'Sally', 42, 0.666, new Date(1990, 5, 28), true, '']);
+        values.push('(?,?,?,?,?,?,?)');
+        params.push([ 4, 'Zoe', -3423, 99.90909, new Date(2000, 1, 1), true, 'I was here']);
+        client.query("INSERT INTO things (`id`, `name`, `number`, `float`, `time`, `bool`, `some_text`) VALUES " + values.join(','), jaz.Array.flatten(params), function(err) {
+          if (err) throw err;
+          cb();
+        });
       });
     });
   },
-  'test find with where clause': function(test) {
-    
-    test.done();
+  'test remove an item': function(test) {
+    var Thing = Seq.getModel('Thing');
+    Thing.find(3, function(err, thing) {
+      if (err) throw err;
+      test.equal(thing.isDeleted, false);
+
+      thing.remove(function(err) {
+        if (err) throw err;
+        test.equal(thing.isDeleted, true);
+        test.equal(thing.id, null);
+        Thing.find(3, function(err, thing) {
+          test.equal(err.constructor, Seq.errors.ItemNotFoundError, 'Should now be deleted from db');
+          test.equal(thing, null);
+          test.done();
+        });
+      });
+    });
+  },
+  'test removing a new item should return error': function(test) {
+    var Thing = Seq.getModel('Thing'),
+        thing = Thing.create({ name: 'bla' });
+    thing.remove(function(err, thing) {
+      test.equal(err.constructor, Seq.errors.NotSavedYetError, 'Should now be deleted from db');
+      test.equal(thing, null);
+      test.done();
+    });
   }
 };
 
 /**
  TODO:
-  find (with where parameters)
-  findAll
-  findAllAsHash
+  validation
   Test datetimes mit before save and after load methods
   Define custom before save methods
   
