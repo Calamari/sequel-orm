@@ -41,6 +41,7 @@ module.exports['model.find methods'] = {
     var Thing = Seq.getModel('Thing');
     Thing.find(3, function(err, thing) {
       if (err) throw err;
+      test.equal(thing.class, 'ThingModel');
       test.equal(thing.name, 'Sally');
       test.equal(thing.number, 42);
       test.equal(thing.id, 3);
@@ -135,13 +136,66 @@ module.exports['model.find methods'] = {
       test.equal(thing.id, 2);
       test.done();
     });
+  },
+  'test findAll method returns array of results (without userParams arg)': function(test) {
+    var Thing = Seq.getModel('Thing');
+    Thing.findAll({  where: "name LIKE 'B%'" }, function(err, things) {
+      if (err) throw err;
+      test.equal(things.length, 2);
+      test.equal(things[0].name, 'Bill');
+      test.equal(things[0].id, 1);
+      test.equal(things[0].class, 'ThingModel');
+      test.equal(things[1].name, 'Bob');
+      test.equal(things[1].id, 2);
+      test.done();
+    });
+  },
+  'test findAll method returns array of results (with userParams arg)': function(test) {
+    var Thing = Seq.getModel('Thing');
+    Thing.findAll({  where: "number = ?" }, [ 42 ], function(err, things) {
+      if (err) throw err;
+      test.equal(things.length, 2);
+      test.equal(things[0].name, 'Bill');
+      test.equal(things[0].id, 1);
+      test.equal(things[0].class, 'ThingModel');
+      test.equal(things[1].name, 'Sally');
+      test.equal(things[1].id, 3);
+      test.equal(things[1].class, 'ThingModel');
+      test.done();
+    });
+  },
+  'test findAll method returns limited number of results but still an Array': function(test) {
+    var Thing = Seq.getModel('Thing');
+    Thing.findAll({  where: "number = ?", limit: 1 }, [ 42 ], function(err, things) {
+      if (err) throw err;
+      test.equal(things.length, 1);
+      test.equal(things[0].name, 'Bill');
+      test.equal(things[0].id, 1);
+      test.equal(things[0].class, 'ThingModel');
+      test.done();
+    });
+  },
+  'test findAll method can find all elements': function(test) {
+    var Thing = Seq.getModel('Thing');
+    Thing.findAll(function(err, things) {
+      if (err) throw err;
+      test.equal(things.length, 4);
+      test.equal(things[0].name, 'Bill');
+      test.equal(things[0].id, 1);
+      test.equal(things[0].class, 'ThingModel');
+      test.equal(things[1].name, 'Bob');
+      test.equal(things[1].id, 2);
+      test.equal(things[2].name, 'Sally');
+      test.equal(things[2].id, 3);
+      test.equal(things[3].name, 'Zoe');
+      test.equal(things[3].id, 4);
+      test.done();
+    });
   }
 };
 
 /**
  TODO:
-  findAll
-    wiht limit
   findAllAsHash
   Test datetimes mit before save and after load methods
   Define custom before save methods
