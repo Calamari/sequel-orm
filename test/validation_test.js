@@ -311,6 +311,9 @@ module.exports['custom validations'] = {
     test.equal(item.errors[0].type, 'one');
     test.equal(item.errors[1].column, 'text');
     test.equal(item.errors[1].type, 'isO');
+    test.equal(item.errors['text'].length, 2);
+    test.equal(item.errors['text'][0], 'one');
+    test.equal(item.errors['text'][0], 'isO');
 
     item.text = 'o';
     test.equal(item.validate(), false);
@@ -321,6 +324,28 @@ module.exports['custom validations'] = {
     item.text = 'one';
     test.equal(item.validate(), true);
     test.equal(item.errors.length, 0);
+    
+    test.done();
+  },
+  'test more validators as custom ones': function(test) {
+    var Item = Seq.defineModel('Item', {
+      text: Seq.dataTypes.VARCHAR({ validation: {
+        one: function(val) { return val === 'one'; },
+        isO: function(val) { return val.indexOf('o') === 0; }
+      } })
+    });
+    var item = Item.create({ text: 'two' });
+    test.equal(item.validate(), false);
+    test.equal(item.errors.length, 2);
+    test.equal(item.errors['text'].length, 2);
+    test.equal(item.errors['text'][0], 'one');
+    test.equal(item.errors['text'][1], 'isO');
+
+    item.text = 'o';
+    test.equal(item.validate(), false);
+    test.equal(item.errors.length, 1);
+    test.equal(item.errors['text'].length, 1);
+    test.equal(item.errors['text'][0], 'one');
     
     test.done();
   },
