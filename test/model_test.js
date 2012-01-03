@@ -306,6 +306,16 @@ module.exports.modelInstanciation = {
       });
     });
     var db  = Seq.create(TEST_CONFIG);
+  },
+  'test false validation will prevent saving': function(test) {
+    var Item = Seq.defineModel('Item', {
+        name: Seq.dataTypes.VARCHAR({ required: true })
+      }),
+      item = Item.create();
+    item.save(function(err) {
+      test.equal(err.constructor, Seq.errors.ItemNotValidError, "item should not be valid");
+      test.done();
+    });
   }
 };
 
