@@ -72,6 +72,24 @@ module.exports = {
     item.name = 'Tim';
     test.done();
   },
+  'test afterChange hook is not fired when setting setting element through special setter function': function(test) {
+    test.expect(3);
+    var next = 1,
+        item,
+        Item = Seq.defineModel('Item', Seq.getTableFromMigration('items'), {
+          hooks: {
+            afterChange: function(key, value) {
+              test.equal(next++, 1);
+              test.equal(this.class, 'ItemModel');
+              this.setAttribute('name', this.name + 'my');
+            }
+          }
+        });
+    item = Item.create({ name: 'Bob' });
+    item.name = 'Tim';
+    test.equal(item.name, 'Timmy');
+    test.done();
+  },
   'test beforeValidate hook is fired and has right this scope and arguments': function(test) {
     test.expect(4);
     var item,
@@ -195,5 +213,3 @@ module.exports = {
     });
   }
 };
-
-// TODO: get and validate hook, as second type of hooks
