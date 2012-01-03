@@ -384,7 +384,6 @@ module.exports['model.remove'] = {
 
 /**
  TODO:
-  validation
   Test datetimes mit before save and after load methods
   Define custom before save methods
   

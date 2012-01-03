@@ -257,13 +257,3 @@ module.exports['model.find methods'] = {
     });
   }
 };
-
-/**
- TODO:
-  Test datetimes mit before save and after load methods
-  Define custom before save methods
-  
-  
-  later on:
-  caching (remember item,id combo in cache and don't query for them)
- */
