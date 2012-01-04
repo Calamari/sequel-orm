@@ -7,7 +7,7 @@ var Seq         = require(__dirname + '/..'),
 module.exports.tableDefinition = {
   setUp: function(cb) {
     Seq.clearTableDefinitions();
-    client.query("DROP TABLE items;", function() {
+    client.query("DROP TABLE products;", function() {
       Seq.createTable('products', function(table) {
         table.addColumn('title', Seq.dataTypes.VARCHAR({ unique: true }));
         table.addColumn('text', Seq.dataTypes.TEXT());
