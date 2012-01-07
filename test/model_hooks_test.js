@@ -4,7 +4,7 @@ var Seq         = require(__dirname + '/..'),
     TEST_CONFIG = require(__dirname + '/test_config'),
     client      = mysql.createClient(TEST_CONFIG);
 
-module.exports = {
+module.exports['static'] = {
   setUp: function(cb) {
     var db  = Seq.create(TEST_CONFIG);
     this.db = db;
@@ -210,6 +210,38 @@ module.exports = {
           test.done();
         }, 0);
       });
+    });
+  }
+};
+
+module.exports['instance'] = {
+  setUp: function(cb) {
+    var db  = Seq.create(TEST_CONFIG);
+    this.db = db;
+    client.query("DROP TABLE items;", function() {
+      var tableDef = function(table) {
+        table.addColumn('name', Seq.dataTypes.VARCHAR());
+        table.addColumn('price', Seq.dataTypes.INT({ required: true }));
+        table.addTimestamps();
+      };
+      Seq.createTable('items', tableDef);
+      db.createTable('items', tableDef, function() {
+        Seq.defineModel('Item', Seq.getTableFromMigration('items'));
+        cb();
+      });
+    });
+  },
+  'test save event': function(test) {
+    test.expect(2);
+    var Item = Seq.getModel('Item'),
+        item = Item.create({ name: 'Bob', price: 42 });
+    item.once('save', function(theItem) {
+      test.equal(theItem, item);
+      test.equal(item.isDirty, false);
+    });
+    item.save(function(err) {
+      if (err) throw err;
+      test.done();
     });
   }
 };
