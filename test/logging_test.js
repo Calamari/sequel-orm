@@ -123,3 +123,55 @@ module.exports['table migrations'] = {
     });
   }
 };
+
+module.exports['models'] = {
+  setUp: function(cb) {
+    var db = Seq.create(TEST_CONFIG);
+    this.db = db;
+    client.query("DROP TABLE products;", function() {
+      var tableDef = function(table) {
+        table.addColumn('name', Seq.dataTypes.VARCHAR());
+      };
+      Seq.createTable('products', tableDef);
+      Seq.defineModel('Product', Seq.getTableFromMigration('products'));
+      db.createTable('products', tableDef, function(err) {
+        cb();
+      });
+    });
+  },
+  tearDown: function(cb) {
+    Seq.removeAllListeners('log');
+    cb();
+  },
+  'test saving a model': function(test) {
+    test.expect(2);
+    Seq.on('log', function(status, message) {
+      test.equal(status, Seq.LOG_LEVEL_INFO);
+      test.equal(message, "Sending SQL: INSERT INTO `products` (name) VALUES (?);");
+    });
+    var Product = Seq.getModel('Product'),
+        product = Product.create({ name: 'Somethings todo' });
+    product.save();
+    test.done();
+  },
+  'test finding a model': function(test) {
+    test.expect(2);
+    Seq.on('log', function(status, message) {
+      test.equal(status, Seq.LOG_LEVEL_INFO);
+      test.equal(message, "Sending SQL: SELECT * FROM `products` WHERE id=?  LIMIT 1;");
+    });
+    var Product = Seq.getModel('Product');
+    Product.find(1);
+    test.done();
+  },
+  'test finding several models': function(test) {
+    test.expect(2);
+    Seq.on('log', function(status, message) {
+      test.equal(status, Seq.LOG_LEVEL_INFO);
+      test.equal(message, "Sending SQL: SELECT * FROM `products` WHERE name='Bob'  LIMIT 4,1;");
+    });
+    var Product = Seq.getModel('Product');
+    Product.findAll({ where: "name='Bob'", offset: 4, limit: 1 });
+    test.done();
+  }
+};
