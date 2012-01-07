@@ -6,8 +6,8 @@ var Seq = require(__dirname + '/..'),
 module.exports.createTable = {
   setUp: function(cb) {
     this.db = Seq.create(TEST_CONFIG);
-    client.query("DROP TABLE products;", function() {
-      client.query("DROP TABLE my_products;", function() { cb(); });
+    client.query("DROP TABLE products, my_products;", function() {
+      cb();
     });
   },
   'test creating a table': function(test) {
