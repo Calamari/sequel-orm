@@ -38,6 +38,11 @@ module.exports['model.find methods'] = {
       });
     });
   },
+  'test find does not need a callback': function(test) {
+    var Thing = Seq.getModel('Thing');
+    Thing.find(3);
+    test.done();
+  },
   'test find with id': function(test) {
     var Thing = Seq.getModel('Thing');
     Thing.find(3, function(err, thing) {
