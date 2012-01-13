@@ -69,6 +69,13 @@ module.exports.modelDefinition = {
     test.ok(Item.fields[3], 'createdAt');
     test.ok(Item.fields[4], 'updatedAt');
     test.done();
+  },
+  'test if model definition is UpperCamelCase': function(test) {
+    Seq.defineModel('foo_bar', {});
+    var def = Seq.getModel('FooBar');
+    test.equal(def.name, 'FooBar');
+    test.equal(def.fields.length, 1);
+    test.done();
   }
 };
 
@@ -122,6 +129,7 @@ module.exports.modelInstanciation = {
       test.equal(item.isNew, false);
       test.equal(item.isDirty, false);
       test.equal(item.id, 1);
+      test.equal(typeof item.id, 'number');
       test.ok(jaz.Object.isEqual(item, savedItem));
       client.query("SELECT * FROM items", function(err, results) {
         if (err) throw err;
@@ -355,6 +363,7 @@ module.exports['model.remove'] = {
   },
   'test remove an item': function(test) {
     var Thing = Seq.getModel('Thing');
+
     Thing.find(3, function(err, thing) {
       if (err) throw err;
       test.equal(thing.isDeleted, false);
