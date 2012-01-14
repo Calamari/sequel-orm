@@ -24,7 +24,7 @@ module.exports = {
       'test adding foreign key for Things table': function(test) {
         this.db.createTable('items', function(table) {
           table.addColumn('name', Seq.dataTypes.VARCHAR());
-          table.addHasOneColumn('thing');
+          table.addBelongsToColumn('thing');
         }, function(err) {
           if (err) throw err;
           client.query("DESCRIBE items", function(err, result) {
@@ -43,7 +43,7 @@ module.exports = {
       'test adding foreign key for SomeSpecialThings table': function(test) {
         this.db.createTable('items', function(table) {
           table.addColumn('name', Seq.dataTypes.VARCHAR());
-          table.addHasOneColumn('SomeSpecialThing');
+          table.addBelongsToColumn('SomeSpecialThing');
         }, function(err) {
           if (err) throw err;
           client.query("DESCRIBE items", function(err, result) {
@@ -59,7 +59,7 @@ module.exports = {
       'test adding foreign key for Things table with another name': function(test) {
         this.db.createTable('items', function(table) {
           table.addColumn('name', Seq.dataTypes.VARCHAR());
-          table.addHasOneColumn('thing', { as: 'object' });
+          table.addBelongsToColumn('thing', { as: 'object' });
         }, function(err) {
           if (err) throw err;
           client.query("DESCRIBE items", function(err, result) {
@@ -78,7 +78,7 @@ module.exports = {
           table.addColumn('name', Seq.dataTypes.VARCHAR());
         }, function(err) {
           db.updateTable('items', function(table) {
-            table.addHasOneColumn('thing', { as: 'object' });
+            table.addBelongsToColumn('thing', { as: 'object' });
           }, function(err) {
             if (err) throw err;
             client.query("DESCRIBE items", function(err, result) {
@@ -104,8 +104,8 @@ module.exports = {
             if (err) throw err;
             db.createTable('items', function(table) {
               table.addColumn('name', Seq.dataTypes.VARCHAR());
-              table.addHasOneColumn('thing', { as: 'object' });
-              table.addHasOneColumn('awesomeThing');
+              table.addBelongsToColumn('thing', { as: 'object' });
+              table.addBelongsToColumn('awesomeThing');
             }, function(err) {
               if (err) throw err;
               cb();
@@ -115,7 +115,7 @@ module.exports = {
       },
       'test remove named reference to thing table': function(test) {
         this.db.updateTable('items', function(table) {
-          table.removeHasOneColumn('object');
+          table.removeBelongsToColumn('object');
         }, function(err) {
           if (err) throw err;
           client.query("DESCRIBE items", function(err, result) {
@@ -130,7 +130,7 @@ module.exports = {
       },
       'test remove camelcased reference to awesome_thing table': function(test) {
         this.db.updateTable('items', function(table) {
-          table.removeHasOneColumn('awesomeThing');
+          table.removeBelongsToColumn('awesomeThing');
         }, function(err) {
           if (err) throw err;
           client.query("DESCRIBE items", function(err, result) {
@@ -150,8 +150,8 @@ module.exports = {
         client.query("DROP TABLE items;", function() {
           Seq.createTable('items', function(table) {
             table.addColumn('name', Seq.dataTypes.VARCHAR());
-            table.addHasOneColumn('thing', { as: 'object' });
-            table.addHasOneColumn('awesomeThing');
+            table.addBelongsToColumn('thing', { as: 'object' });
+            table.addBelongsToColumn('awesomeThing');
           });
           cb();
         });
@@ -166,8 +166,8 @@ module.exports = {
       },
       'test removing key removes column': function(test) {
         Seq.updateTable('items', function(table) {
-          table.removeHasOneColumn('object');
-          table.removeHasOneColumn('awesomeThing');
+          table.removeBelongsToColumn('object');
+          table.removeBelongsToColumn('awesomeThing');
         });
         var ItemTable = Seq.getTableFromMigration('Item');
         test.ok(ItemTable.id.equals(Seq.dataTypes.INT())); // hmm, should be changed to autoincrement stuff...
@@ -220,7 +220,7 @@ var setup = function(type) {
           },
           itemsDef = function(table) {
             table.addColumn('name', Seq.dataTypes.VARCHAR());
-            table.addHasOneColumn('thing');
+            table.addBelongsToColumn('thing');
           };
 
       Seq.createTable('things', thingsDef);
@@ -228,12 +228,12 @@ var setup = function(type) {
       if (type === 'object') {
         var Thing = Seq.defineModel('Thing', Seq.getTableFromMigration('things'));
         var Item  = Seq.defineModel('Item', Seq.getTableFromMigration('items'));
-        Item.hasOne(Thing);
+        Item.belongsTo(Thing);
       }
       if (type === 'late defined') {
         Seq.removeModel('Thing');
         var Item  = Seq.defineModel('Item', Seq.getTableFromMigration('items'));
-        Item.hasOne('Thing');
+        Item.belongsTo('Thing');
         // and def
         var Thing = Seq.defineModel('Thing', Seq.getTableFromMigration('things'));
       }
