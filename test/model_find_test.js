@@ -51,6 +51,7 @@ module.exports['model.find methods'] = {
       test.equal(thing.name, 'Sally');
       test.equal(thing.number, 42);
       test.equal(thing.id, 3);
+      test.equal(typeof thing.id, 'number');
       test.equal(thing.bool, true);
       test.done();
     });

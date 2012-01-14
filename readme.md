@@ -109,9 +109,8 @@ It uses the [node_mysql](https://github.com/felixge/node-mysql) module by [Felix
 - check that isDirty is false if setThing and removeThing is called and old state is set again
 
 ### v0.1:
-- hasMany Associations
 - hasMany with different name
-- ManyToMany
+- ManyToMany (tablename alphabetical)
 - Check association validation before saving
 - Check if record can be extracted as module from model.js
 - this readme file with all stuff explained
@@ -122,6 +121,8 @@ It uses the [node_mysql](https://github.com/felixge/node-mysql) module by [Felix
 - tests for setThing(thing) will change thing.item_id
 - tests for setThings([thing]) will change thing.item_id and save that in db
 - make sure we only save changed attributes into db
+- rename Item.remove to Item.destroy
+- implement belongsTo for hasOne and hasMany
 
 ### v0.2:
 - dont mark things as dirty if orignal state is met again
@@ -133,6 +134,7 @@ It uses the [node_mysql](https://github.com/felixge/node-mysql) module by [Felix
 - associations with autosave?
 - Item.getThings({ where: 'id>3', limit: 5 }, cb) should work
 - Extract functionality for singular pluralize words and make them attributes, ids, or whatever
+- Change findAllAsHash to findAll({ hash: true }) and remove findAllAsHash
 
 ### later:
 - get and validate hook, as second type of hooks?
