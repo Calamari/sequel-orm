@@ -368,7 +368,7 @@ module.exports['model.remove'] = {
       if (err) throw err;
       test.equal(thing.isDeleted, false);
 
-      thing.remove(function(err) {
+      thing.destroy(function(err) {
         if (err) throw err;
         test.equal(thing.isDeleted, true);
         test.equal(thing.id, null);
@@ -383,7 +383,7 @@ module.exports['model.remove'] = {
   'test removing a new item should return error': function(test) {
     var Thing = Seq.getModel('Thing'),
         thing = Thing.create({ name: 'bla' });
-    thing.remove(function(err, thing) {
+    thing.destroy(function(err, thing) {
       test.equal(err.constructor, Seq.errors.NotSavedYetError, 'Should now be deleted from db');
       test.equal(thing, null);
       test.done();
