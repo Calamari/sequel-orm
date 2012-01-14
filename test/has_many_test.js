@@ -7,7 +7,7 @@ var Seq         = require(__dirname + '/..'),
 
 module.exports['migration'] = {
   setUp: function(cb) {
-    var db  = Seq.create(TEST_CONFIG);
+    var db  = Seq.createIfNotExistent(TEST_CONFIG);
     this.db = db;
     client.query("DROP TABLE items, things, item_to_things, awesome_item_to_awesome_things;", function() {
       db.createTable('things', function(table) {

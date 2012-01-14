@@ -6,7 +6,7 @@ var Seq         = require(__dirname + '/..'),
 
 module.exports['static'] = {
   setUp: function(cb) {
-    var db  = Seq.create(TEST_CONFIG);
+    var db  = Seq.createIfNotExistent(TEST_CONFIG);
     this.db = db;
     client.query("DROP TABLE items;", function() {
       var tableDef = function(table) {
@@ -216,7 +216,7 @@ module.exports['static'] = {
 
 module.exports['instance'] = {
   setUp: function(cb) {
-    var db  = Seq.create(TEST_CONFIG);
+    var db  = Seq.createIfNotExistent(TEST_CONFIG);
     this.db = db;
     client.query("DROP TABLE items;", function() {
       var tableDef = function(table) {

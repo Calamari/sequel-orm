@@ -10,7 +10,7 @@ module.exports = {
   migration: {
     'add key': {
       setUp: function(cb) {
-        var db  = Seq.create(TEST_CONFIG);
+        var db  = Seq.createIfNotExistent(TEST_CONFIG);
         this.db = db;
         client.query("DROP TABLE items, things, some_special_things;", function() {
           db.createTable('things', function(table) {
@@ -95,7 +95,7 @@ module.exports = {
     },
     'remove key': {
       setUp: function(cb) {
-        var db  = Seq.create(TEST_CONFIG);
+        var db  = Seq.createIfNotExistent(TEST_CONFIG);
         this.db = db;
         client.query("DROP TABLE items, things;", function() {
           db.createTable('things', function(table) {

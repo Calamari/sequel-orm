@@ -6,7 +6,7 @@ var Seq         = require(__dirname + '/..'),
 
 module.exports.modelDefinition = {
   setUp: function(cb) {
-    var db  = Seq.create(TEST_CONFIG);
+    var db  = Seq.createIfNotExistent(TEST_CONFIG);
     this.db = db;
     client.query("DROP TABLE items;", function() {
       Seq.createTable('items', function(table) {
@@ -81,7 +81,7 @@ module.exports.modelDefinition = {
 
 module.exports.modelInstanciation = {
   setUp: function(cb) {
-    var db  = Seq.create(TEST_CONFIG);
+    var db  = Seq.createIfNotExistent(TEST_CONFIG);
     this.db = db;
     client.query("DROP TABLE items;", function() {
       var tableDef = function(table) {
@@ -329,7 +329,7 @@ module.exports.modelInstanciation = {
 
 module.exports['model.remove'] = {
   setUp: function(cb) {
-    var db  = Seq.create(TEST_CONFIG);
+    var db  = Seq.createIfNotExistent(TEST_CONFIG);
     this.db = db;
     client.query("DROP TABLE things;", function() {
       var tableDef = function(table) {

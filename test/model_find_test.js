@@ -6,7 +6,7 @@ var Seq         = require(__dirname + '/..'),
 
 module.exports['model.find methods'] = {
   setUp: function(cb) {
-    var db  = Seq.create(TEST_CONFIG);
+    var db  = Seq.createIfNotExistent(TEST_CONFIG);
     this.db = db;
     client.query("DROP TABLE things;", function() {
       var tableDef = function(table) {

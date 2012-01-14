@@ -158,7 +158,7 @@ module.exports['models'] = {
     test.expect(2);
     Seq.on('log', function(status, message) {
       test.equal(status, Seq.LOG_LEVEL_INFO);
-      test.equal(message, "Sending SQL: SELECT * FROM `products` WHERE id=?  LIMIT 1;");
+      test.equal(message, "Sending SQL: SELECT products.* FROM `products`  WHERE products.id=?   LIMIT 1;");
     });
     var Product = Seq.getModel('Product');
     Product.find(1);
@@ -168,7 +168,7 @@ module.exports['models'] = {
     test.expect(2);
     Seq.on('log', function(status, message) {
       test.equal(status, Seq.LOG_LEVEL_INFO);
-      test.equal(message, "Sending SQL: SELECT * FROM `products` WHERE name='Bob'  LIMIT 4,1;");
+      test.equal(message, "Sending SQL: SELECT products.* FROM `products`  WHERE name='Bob'   LIMIT 4,1;");
     });
     var Product = Seq.getModel('Product');
     Product.findAll({ where: "name='Bob'", offset: 4, limit: 1 });
