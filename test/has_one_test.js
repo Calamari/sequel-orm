@@ -5,7 +5,6 @@ var Seq         = require(__dirname + '/..'),
     client      = mysql.createClient(TEST_CONFIG);
 
 //THINK: Maybe addHasOneColumn adding a column to the database might not be the best of ideas
-
 module.exports = {
   migration: {
     'add key': {
@@ -229,6 +228,7 @@ var setup = function(type) {
         var Thing = Seq.defineModel('Thing', Seq.getTableFromMigration('things'));
         var Item  = Seq.defineModel('Item', Seq.getTableFromMigration('items'));
         Item.belongsTo(Thing);
+        Thing.hasOne(Item);
       }
       if (type === 'late defined') {
         Seq.removeModel('Thing');
@@ -236,6 +236,7 @@ var setup = function(type) {
         Item.belongsTo('Thing');
         // and def
         var Thing = Seq.defineModel('Thing', Seq.getTableFromMigration('things'));
+        Thing.hasOne('Item');
       }
 
       generateTestData(db, thingsDef, itemsDef, cb);
@@ -341,18 +342,40 @@ var modelTests = {
     });
   },
   'test adding a thing by id with setThing method': function(test) {
-    //TODO
-    test.done();
+    var Item  = Seq.getModel('Item'),
+        Thing = Seq.getModel('Thing');
+
+    Item.find(2, function(err, item) {
+      if (err) throw err;
+      test.equal(item.thingId, 0);
+      item.thingId = 2;
+      test.equal(item.thingId, 2);
+
+      test.done();
+    });
   },
-  'test reading a thing from item with instance attribute': function(test) {
-    //TODO more magic (for example with load associations argument on item load??)
-    test.done();
+  'test adding a non existent thing and trying to load it returns error': function(test) {
+    var Item  = Seq.getModel('Item'),
+        Thing = Seq.getModel('Thing');
+
+    Item.find(2, function(err, item) {
+      if (err) throw err;
+      item.thingId = 20;
+
+      item.getThing(function(err, thing) {
+        test.equal(err.constructor, Seq.errors.ItemNotFoundError);
+
+        test.done();
+      });
+    });
   },
   'test reading a thing from item with getThing method': function(test) {
     var Item  = Seq.getModel('Item'),
         Thing = Seq.getModel('Thing');
+
     Item.find(3, function(err, item) {
       if (err) throw err;
+
       item.getThing(function(err, thing) {
         if (err) throw err;
         test.equal(item.isDirty, false);
@@ -365,21 +388,65 @@ var modelTests = {
   'test reading a thing from item that has no thing': function(test) {
     var Item  = Seq.getModel('Item'),
         Thing = Seq.getModel('Thing');
+
     Item.find(2, function(err, item) {
       if (err) throw err;
+
       item.getThing(function(err, thing) {
         test.equal(err.constructor, Seq.errors.ItemNotFoundError);
+
         test.done();
       });
     });
   },
-  'test reading a thing twice will not make a second database call': function(test) {
-    //TODO
-    test.done();
+  'test reading loaded thing will not make additional call': function(test) {
+    var Item  = Seq.getModel('Item'),
+        Thing = Seq.getModel('Thing'),
+        countQueries = 0;
+
+    Seq.on('log', function(status, message) {
+      if (message.match("SELECT things")) {
+        ++countQueries;
+      }
+    });
+
+    Item.find(3, function(err, item) {
+      if (err) throw err;
+
+      item.getThing(function(err) {
+        if (err) throw err;
+
+        item.getThing(function(err) {
+          if (err) throw err;
+          test.equal(countQueries, 1);
+
+          Seq.removeAllListeners('log');
+          test.done();
+        });
+      });
+    });
+  },
+  'test immediate getter for getting when its loaded': function(test) {
+    var Item  = Seq.getModel('Item'),
+        Thing = Seq.getModel('Thing');
+
+    Item.find(3, function(err, item) {
+      if (err) throw err;
+      test.equal(item.thingId, 1);
+      test.equal(item.thing, null);
+
+      item.getThing(function(err, thing) {
+        if (err) throw err;
+        test.equal(item.thing, thing);
+
+        test.done();
+      });
+    });
   },
   'test removing an association': function(test) {
     var Item  = Seq.getModel('Item'),
         Thing = Seq.getModel('Thing');
+
     Item.find(3, function(err, item) {
       if (err) throw err;
       test.equal(item.isDirty, false);
@@ -387,27 +454,209 @@ var modelTests = {
       item.removeThing();
       test.equal(item.isDirty, true);
       test.equal(item.thingId, 0);
+
       item.getThing(function(err, thing) {
         test.equal(err.constructor, Seq.errors.ItemNotFoundError);
-        test.done();
+
+        item.save(function(err) {
+          if (err) throw err;
+
+          client.query("SELECT * FROM items WHERE id=3", function(err, result) {
+            if (err) throw err;
+            test.equal(result[0].thing_id, 0);
+
+            test.done();
+          });
+        });
       });
     });
   },
   'test removing an association of just added unsaved thing': function(test) {
     var Item  = Seq.getModel('Item'),
-        Thing = Seq.getModel('Thing');
-    var thing = Thing.create({ name: 'newThing' });
+        Thing = Seq.getModel('Thing'),
+        thing = Thing.create({ name: 'newThing' });
+
     Item.find(2, function(err, item) {
       if (err) throw err;
       item.setThing(thing);
       item.removeThing();
+
       item.save(function(err) {
         if (err) throw err;
         // if no error, then test is passed
         test.done();
       });
     });
-  }
+  },
+  'test adding and getting an associated item as a hasone of a model': function(test) {
+    var Item  = Seq.getModel('Item'),
+        Thing = Seq.getModel('Thing'),
+        thing = Thing.create({ name: 'new thing' }),
+        item  = Item.create({ name: 'new item' });
+
+    thing.setItem(item);
+    test.equal(item.thingId, 0);
+    thing.save(function(err) {
+      if (err) throw err;
+      test.equal(item.thingId, thing.id);
+
+      item.getThing(function(err, returnedThing) {
+        if (err) throw err;
+        test.equal(returnedThing.name, thing.name);
+        test.equal(item.thing, returnedThing);
+
+        thing.getItem(function(err, returnedItem) {
+          if (err) throw err;
+          test.equal(returnedItem, item);
+          test.equal(thing.item, item);
+
+          test.done();
+        });
+      });
+    });
+  },
+  'test loading a hasOne associated item twice makes only one db call': function(test) {
+    var Item  = Seq.getModel('Item'),
+        Thing = Seq.getModel('Thing'),
+        item  = Item.create({ name: 'new item' }),
+        countQueries = 0;
+
+    Thing.find(1, function(err, thing) {
+      if (err) throw err;
+      Seq.on('log', function(status, message) {
+        ++countQueries;
+      });
+
+      thing.getItem(function(err, item) {
+        if (err) throw err;
+
+        thing.getItem(function(err, returnedItem) {
+          if (err) throw err;
+          test.equal(countQueries, 1);
+          test.equal(returnedItem, item);
+
+          Seq.removeAllListeners('log');
+          test.done();
+        });
+      });
+    });
+  },
+  'test getting a hasOne association sets the associated id attribute': function(test) {
+    var Item  = Seq.getModel('Item'),
+        Thing = Seq.getModel('Thing');
+
+    
+    Thing.find(1, function(err, thing) {
+      if (err) throw err;
+      test.equal(thing.isDirty, false);
+      test.equal(thing.itemId, 3);
+
+      test.done();
+    });
+  },
+  'test setting a hasOne association makes the record dirty': function(test) {
+    var Item  = Seq.getModel('Item'),
+        Thing = Seq.getModel('Thing'),
+        thing = Thing.create({ name: 'bla' });
+
+    thing.save(function(err) {
+      if (err) throw err;
+
+      Item.find(2, function(err, item) {
+        if (err) throw err;
+        test.equal(thing.isDirty, false);
+        thing.setItem(item);
+        test.equal(thing.isDirty, true);
+
+        test.done();
+      });
+    });
+  },
+  'test setting a hasOne association sets the associated id attribute': function(test) {
+    var Item  = Seq.getModel('Item'),
+        Thing = Seq.getModel('Thing'),
+        thing = Thing.create({ name: 'bla' });
+
+    Item.find(2, function(err, item) {
+      if (err) throw err;
+      test.equal(thing.itemId, 0);
+      thing.setItem(item);
+      test.equal(thing.itemId, 2);
+
+      test.done();
+    });
+  },
+  'test removing an hasOne association': function(test) {
+    var Item  = Seq.getModel('Item'),
+        Thing = Seq.getModel('Thing');
+
+    Thing.find(1, function(err, thing) {
+      if (err) throw err;
+      test.equal(thing.isDirty, false);
+      test.equal(thing.itemId, 3);
+      thing.removeItem();
+      test.equal(thing.isDirty, true);
+      test.equal(thing.itemId, 0);
+
+      thing.save(function(err) {
+        if (err) throw err;
+
+        thing.getItem(function(err) {
+          test.equal(err.constructor, Seq.errors.ItemNotFoundError);
+   
+          thing.save(function(err) {
+            if (err) throw err;
+
+            client.query("SELECT * FROM items WHERE id=3", function(err, result) {
+              if (err) throw err;
+              test.equal(result[0].thing_id, 0);
+
+              test.done();
+            });
+          });
+        });
+      });
+    });
+  },
+  'test removing a non existend associated item does nothing': function(test) {
+    var Item  = Seq.getModel('Item'),
+        Thing = Seq.getModel('Thing'),
+        countQueries = 0;
+
+    Seq.on('log', function(status, message) {
+      if (message.match("UPDATE `items`")) {
+        ++countQueries;
+      }
+    });
+
+    Thing.find(2, function(err, thing) {
+      if (err) throw err;
+      thing.removeItem();
+
+      thing.save(function(err) {
+        if (err) throw err;
+        test.equal(countQueries, 0);
+
+        Seq.removeAllListeners('log');
+        test.done();
+      });
+    });
+  },
+  'test removing an associated item from unsaved record': function(test) {
+    var Item  = Seq.getModel('Item'),
+        Thing = Seq.getModel('Thing'),
+        item  = Item.create({ name: 'just an item '}),
+        thing = Thing.create({ name: 'just a thing '});
+
+    thing.removeItem();
+    test.equal(thing.item, null);
+    thing.setItem(item);
+    test.equal(thing.item, item);
+    thing.removeItem();
+    test.equal(thing.item, null);
+
+    test.done();
+  },
 };
 
 module.exports['model'] = jaz.Object.extend({}, modelTests);
