@@ -9,24 +9,26 @@ module.exports['migration'] = {
   setUp: function(cb) {
     var db  = Seq.createIfNotExistent(TEST_CONFIG);
     this.db = db;
-    client.query("DROP TABLE items, things, item_to_things, awesome_item_to_awesome_things;", function() {
+    client.query("DROP TABLE items, things, items_to_things, awesome_items_to_awesome_things, awesome_things_to_beta_products;", function() {
       db.createTable('things', function(table) {
         table.addColumn('name', Seq.dataTypes.VARCHAR());
       }, function(err) {
         if (err) throw err;
+
         db.createTable('items', function(table) {
           table.addColumn('name', Seq.dataTypes.VARCHAR());
         }, function(err) {
           if (err) throw err;
+
           cb();
         });
       });
     });
   },
   'test creating an association table': function(test) {
-    this.db.createHasManyAssociationTable('item', 'thing', function(err) {
+    this.db.createManyToManyAssociationTable('item', 'thing', function(err) {
       if (err) throw err;
-      client.query("DESCRIBE item_to_thing;", function(err, result) {
+      client.query("DESCRIBE items_to_things;", function(err, result) {
         if (err) throw err;
         // at some point we have to remove id column
         test.equal(result.length, 3, 'We should have a table with two fields and an id');
@@ -43,9 +45,9 @@ module.exports['migration'] = {
     });
   },
   'test creating an association table with uppercase stuff': function(test) {
-    this.db.createHasManyAssociationTable('AwesomeItem', 'awesomeThing', function(err) {
+    this.db.createManyToManyAssociationTable('AwesomeItem', 'awesomeThing', function(err) {
       if (err) throw err;
-      client.query("DESCRIBE awesome_item_to_awesome_things;", function(err, result) {
+      client.query("DESCRIBE awesome_items_to_awesome_things;", function(err, result) {
         if (err) throw err;
         // at some point we have to remove id column
         test.equal(result.length, 3, 'We should have a table with two fields and an id');
@@ -61,13 +63,32 @@ module.exports['migration'] = {
       });
     });
   },
+  'test creating an association table with uppercase stuff and alphabetically unsorted items': function(test) {
+    this.db.createManyToManyAssociationTable('BetaProduct', 'awesomeThing', function(err) {
+      if (err) throw err;
+      client.query("DESCRIBE awesome_things_to_beta_products;", function(err, result) {
+        if (err) throw err;
+        // at some point we have to remove id column
+        test.equal(result.length, 3, 'We should have a table with two fields and an id');
+        test.equal(result[1].Field, 'beta_product_id');
+        test.equal(result[1].Key, 'MUL');
+        test.equal(result[1].Extra, '');
+        test.equal(result[1].Type, 'int(11)');
+        test.equal(result[2].Field, 'awesome_thing_id');
+        test.equal(result[2].Key, '');
+        test.equal(result[2].Extra, '');
+        test.equal(result[2].Type, 'int(11)');
+        test.done();
+      });
+    });
+  },
   'test removing an association table': function(test) {
     var db = this.db;
-    db.createHasManyAssociationTable('item', 'thing', function(err) {
+    db.createManyToManyAssociationTable('item', 'thing', function(err) {
       if (err) throw err;
-      db.dropHasManyAssociationTable('item', 'thing', function(err) {
+      db.dropManyToManyAssociationTable('item', 'thing', function(err) {
         if (err) throw err;
-        client.query("DESCRIBE item_to_things;", function(err, result) {
+        client.query("DESCRIBE items_to_things;", function(err, result) {
           test.ok(err);
           test.done();
         });
@@ -80,7 +101,7 @@ module.exports['migration'] = {
 var generateTestData = function(db, thingsDef, itemsDef, cb) {
   db.createTable('things', thingsDef, function() {
     db.createTable('items', itemsDef, function() {
-      db.createHasManyAssociationTable('item', 'thing', function(err) {
+      db.createManyToManyAssociationTable('item', 'thing', function(err) {
         var things = [],
             items  = [],
             assocs = [];
@@ -97,7 +118,7 @@ var generateTestData = function(db, thingsDef, itemsDef, cb) {
           if (err) throw err;
           client.query("INSERT INTO items (`id`, `name`) VALUES " + items.join(','), function(err) {
             if (err) throw err;
-            client.query("INSERT INTO item_to_things (`item_id`, `thing_id`) VALUES " + assocs.join(','), function(err) {
+            client.query("INSERT INTO items_to_things (`item_id`, `thing_id`) VALUES " + assocs.join(','), function(err) {
               if (err) throw err;
               cb();
             });
@@ -112,7 +133,7 @@ var setup = function(type) {
   return function(cb) {
     var db  = Seq.create(TEST_CONFIG);
     this.db = db;
-    client.query("DROP TABLE things, items, item_to_things;", function() {
+    client.query("DROP TABLE things, items, items_to_things;", function() {
       var thingsDef = function(table) {
             table.addColumn('name', Seq.dataTypes.VARCHAR());
           },
@@ -120,19 +141,23 @@ var setup = function(type) {
             table.addColumn('name', Seq.dataTypes.VARCHAR());
           };
 
+      Seq.clearTableDefinitions();
       Seq.createTable('things', thingsDef);
       Seq.createTable('items', itemsDef);
+      Seq.removeModel('Item');
+      Seq.removeModel('Thing');
       if (type === 'object') {
         var Thing = Seq.defineModel('Thing', Seq.getTableFromMigration('things'));
         var Item  = Seq.defineModel('Item', Seq.getTableFromMigration('items'));
-        Item.hasMany(Thing);
+        Item.hasAndBelongsToMany(Thing);
+        Thing.hasAndBelongsToMany(Item);
       }
       if (type === 'late defined') {
-        Seq.removeModel('Thing');
         var Item  = Seq.defineModel('Item', Seq.getTableFromMigration('items'));
-        Item.hasMany('Thing');
+        Item.hasAndBelongsToMany('Thing');
         // and def
         var Thing = Seq.defineModel('Thing', Seq.getTableFromMigration('things'));
+        Thing.hasAndBelongsToMany('Item');
       }
 
       generateTestData(db, thingsDef, itemsDef, cb);
@@ -204,8 +229,7 @@ var modelTests = {
     var Item   = Seq.getModel('Item'),
         Thing  = Seq.getModel('Thing'),
         thing  = Thing.create({ name: 'a thing' }),
-        thing2 = Thing.create({ name: 'another thing' }),
-        item;
+        thing2 = Thing.create({ name: 'another thing' });
     
     Item.find(1, function(err, item) {
       if (err) throw err;
@@ -223,11 +247,11 @@ var modelTests = {
   },
   'test item stays undirty if associated thing is already assigned to item': function(test) {
     var Item   = Seq.getModel('Item'),
-        Thing  = Seq.getModel('Thing'),
-        item, thing;
+        Thing  = Seq.getModel('Thing');
     
     Item.find(3, function(err, item) {
       if (err) throw err;
+
       Thing.find(1, function(err, thing) {
         if (err) throw err;
         item.addThing(thing);
@@ -252,6 +276,7 @@ var modelTests = {
       client.query("SELECT * FROM items WHERE name='an item'", function(err, results) {
         if (err) throw err;
         test.equal(results.length, 0);
+
         test.done();
       });
     });
@@ -259,12 +284,12 @@ var modelTests = {
   'test save item with already saved things': function(test) {
     var Item  = Seq.getModel('Item'),
         Thing = Seq.getModel('Thing'),
-        item, thing, thing2;
+        item  = Item.create({ name: 'my name' });
 
-    Item.find(1, function(err, item) {
+    item.save(function(err) {
       if (err) throw err;
 
-      Thing.findAll({ where: 'id<=2' }, function(err, things) {
+      Thing.findAll({ where: 'things.id<=2' }, function(err, things) {
       if (err) throw err;
         item.addThings(things);
         test.equal(item.isDirty, true);
@@ -277,7 +302,7 @@ var modelTests = {
           test.equal(item.thingIds[0], 1);
           test.equal(item.thingIds[1], 2);
 
-          client.query("SELECT * FROM item_to_things WHERE item_id=1", function(err, results) {
+          client.query("SELECT * FROM items_to_things WHERE item_id=" + item.id, function(err, results) {
             if (err) throw err;
             test.equal(results.length, 2);
             test.equal(results[0].thing_id, 1);
@@ -322,7 +347,7 @@ var modelTests = {
       test.equal(item.thingIds[0], 1);
       test.equal(item.countAddedAssociations('Thing'), 0);
 
-      client.query("SELECT * FROM item_to_things WHERE item_id=" + item.id, function(err, results) {
+      client.query("SELECT * FROM items_to_things WHERE item_id=" + item.id, function(err, results) {
         if (err) throw err;
         test.equal(results.length, 1);
         test.equal(results[0].thing_id, 1);
@@ -334,8 +359,7 @@ var modelTests = {
   'test loading associated items of item we just added': function(test) {
     var Item  = Seq.getModel('Item'),
         Thing = Seq.getModel('Thing'),
-        item  = Item.create({ name: 'an item' }),
-        thing;
+        item  = Item.create({ name: 'an item' });
 
     item.addThing(1);
 
@@ -354,8 +378,7 @@ var modelTests = {
   'test loading associated id of item we just added': function(test) {
     var Item  = Seq.getModel('Item'),
         Thing = Seq.getModel('Thing'),
-        item  = Item.create({ name: 'an item' }),
-        thing;
+        item  = Item.create({ name: 'an item' });
 
     item.addThing(1);
 
@@ -373,8 +396,7 @@ var modelTests = {
   },
   'test loading one associated item from loaded item': function(test) {
     var Item  = Seq.getModel('Item'),
-        Thing = Seq.getModel('Thing'),
-        item;
+        Thing = Seq.getModel('Thing');
 
     Item.find(3, function(err, item) {
       if (err) throw err;
@@ -382,6 +404,7 @@ var modelTests = {
       item.getThing(2, function(err, thing) {
         if (err) throw err;
         test.equal(thing.id, 2);
+
         test.done();
       });
     });
@@ -389,7 +412,6 @@ var modelTests = {
   'test load associtated items from item': function(test) {
     var Item  = Seq.getModel('Item'),
         Thing = Seq.getModel('Thing'),
-        item,
         thing = Thing.create({ name: 'test' });
 
     Item.find(3, function(err, item) {
@@ -455,6 +477,7 @@ var modelTests = {
 
       item.getThings(function(err, things) {
         if (err) throw err;
+
         item.getThings(function(err, things) {
           if (err) throw err;
           test.equal(countQueries, 1);
@@ -512,7 +535,8 @@ var modelTests = {
 
       item.getThings(function(err, things) {
         if (err) throw err;
-        item.getThing(things[0].id, function(err, thing) {
+
+        item.getThing(things[0].id, function(err) {
           if (err) throw err;
           test.equal(countQueries, 1);
 
@@ -536,10 +560,10 @@ var modelTests = {
     Item.find(3, function(err, item) {
       if (err) throw err;
 
-      item.getThing(2, function(err, thing) {
+      item.getThing(2, function(err) {
         if (err) throw err;
 
-        item.getThing(2, function(err, thing) {
+        item.getThing(2, function(err) {
           if (err) throw err;
           test.equal(countQueries, 1);
 
@@ -565,12 +589,13 @@ var modelTests = {
   },
   'test removing a thing from item which was not saved': function(test) {
     var Item  = Seq.getModel('Item'),
-        Thing = Seq.getModel('Thing'),
-        item, thing, thing2;
+        Thing = Seq.getModel('Thing');
 
     Item.find(1, function(err, item) {
       if (err) throw err;
-      Thing.findAll({ where: 'id<=2' }, function(err, things) {
+
+      Thing.findAll({ where: 'things.id<=2' }, function(err, things) {
+        if (err) throw err;
         item.addThings(things);
         test.equal(item.countAddedAssociations('Thing'), 2);
         item.removeThing(things[0]);
@@ -581,7 +606,7 @@ var modelTests = {
           if (err) throw err;
           test.equal(item.isDirty, false);
 
-          client.query("SELECT * FROM item_to_things WHERE item_id=1", function(err, results) {
+          client.query("SELECT * FROM items_to_things WHERE item_id=1", function(err, results) {
             if (err) throw err;
             test.equal(results.length, 1);
             test.equal(results[0].thing_id, 2);
@@ -622,6 +647,7 @@ var modelTests = {
         item  = Item.create({ name: 'an item' }),
         thing = Thing.create({ name: 'a thing' }),
         thing2 = Thing.create({ name: 'another thing' });
+
     item.addThing(thing, thing2);
     test.equal(item.things.length, 2);
     test.equal(item.countAddedAssociations('Thing'), 2);
@@ -634,8 +660,7 @@ var modelTests = {
   },
   'test removing one thing by id from item we loaded': function(test) {
     var Item  = Seq.getModel('Item'),
-        Thing = Seq.getModel('Thing'),
-        item;
+        Thing = Seq.getModel('Thing');
 
     Item.find(3, function(err, item) {
       if (err) throw err;
@@ -662,8 +687,95 @@ var modelTests = {
         });
       });
     });
+  },
+  'test if thing gets dirty if item is added': function(test) {
+    var Item   = Seq.getModel('Item'),
+        Thing  = Seq.getModel('Thing'),
+        thing  = Thing.create({ name: 'a thing' }),
+        thing2 = Thing.create({ name: 'another thing' });
+    
+    Thing.find(1, function(err, thing) {
+      if (err) throw err;
+      thing.addItem();
+      test.equal(thing.isDirty, false);
+      thing.addItems();
+      test.equal(thing.isDirty, false);
+      thing.addItems([]);
+      test.equal(thing.isDirty, false);
+      thing.addItem(thing);
+      test.equal(thing.isDirty, true);
+
+      test.done();
+    });
+  },
+  'test it thing returns error if associated items are not saved': function(test) {
+    var Item   = Seq.getModel('Item'),
+        Thing  = Seq.getModel('Thing'),
+        item   = Item.create({ name: 'lala' });
+    
+    Thing.find(1, function(err, thing) {
+      if (err) throw err;
+      thing.addItem(item);
+
+      thing.save(function(err) {
+        test.equal(err.constructor, Seq.errors.AssociationsNotSavedError);
+    
+        test.done();
+      });
+    });
+  },
+  'test it thing can add and save items': function(test) {
+    var Item   = Seq.getModel('Item'),
+        Thing  = Seq.getModel('Thing'),
+        item   = Item.create({ name: 'lala' });
+    
+    Thing.find(3, function(err, thing) {
+      if (err) throw err;
+      thing.addItem(item);
+
+      item.save(function(err) {
+        if (err) throw err;
+
+        thing.save(function(err) {
+          if (err) throw err;
+      
+          client.query("SELECT * FROM items_to_things WHERE thing_id=3", function(err, results) {
+            if (err) throw err;
+            test.equal(results.length, 1);
+            test.equal(results[0].item_id, item.id);
+            test.equal(results[0].thing_id, 3);
+
+            test.done();
+          });
+        });
+      });
+    });
+  },
+  'test if getting associated items of unsaved record returns all just added items': function(test) {
+    var Item   = Seq.getModel('Item'),
+        Thing  = Seq.getModel('Thing'),
+        item   = Item.create({ name: 'an item' }),
+        thing  = Thing.create({ name: 'a thing' });
+    
+    thing.addItem(item);
+
+    Item.find(2, function(err, item2) {
+      if (err) throw err;
+      thing.addItem(item2);
+
+      thing.getItems(function(err, items) {
+        if (err) throw err;
+        test.equal(items.length, 2);
+        test.equal(items[0], item);
+        test.equal(items[1], item2);
+
+        test.done();
+      });
+    });
   }
 };
+//TODO: change some tests for the other direction
+//TODO: add tests for mutual changing 
 
 module.exports['model'] = jaz.Object.extend({}, modelTests);
 module.exports['model'].setUp = setup('object');

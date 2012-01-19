@@ -111,7 +111,6 @@ It uses the [node_mysql](https://github.com/felixge/node-mysql) module by [Felix
 ### v0.1:
 - implement belongsTo for hasMany
 - hasMany with different name
-- ManyToMany (tablename alphabetical)
 - Check if record can be extracted as module from model.js
 - this readme file with all stuff explained
 - generated documentation
@@ -135,6 +134,8 @@ It uses the [node_mysql](https://github.com/felixge/node-mysql) module by [Felix
 - Extract functionality for singular pluralize words and make them attributes, ids, or whatever
 - Change findAllAsHash to findAll({ hash: true }) and remove findAllAsHash
 - association validation
+- Thing.findAll({ where: 'things.id<=2' },... Think about adding table name automatically for inputs??
+- Save multiple records at once Record.save([r1, r2, r3])
 
 ### later:
 - get and validate hook, as second type of hooks?
