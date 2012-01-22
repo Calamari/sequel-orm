@@ -130,35 +130,45 @@ You can find element from the database like that:
 
 ### Migrations
 
-#### HasOne Associations
-A hasOne association can be defined like the following example:
+### Associations
+The association concept is pretty much the same as in [the Active Records of Ruby on Rails](http://guides.rubyonrails.org/association_basics.html). But at the moment much more basic.
+
+#### HasOne and BelongsTo Associations
+A hasOne and belongsTo association can be defined like the following example:
 
     // create the tables
     Seq.createTable('things', function(table) {
       table.addColumn('name', Seq.dataTypes.VARCHAR());
+      table.addBelongsToColumn('item');
     });
     Seq.createTable('items', function(table) {
       table.addColumn('name', Seq.dataTypes.VARCHAR());
-      table.addHasOneColumn('thing');
-      table.addHasOneColumn('thing', { as: 'anotherThing' });
     });
-    // define the models with hasOne
+    // define the models with a one to one association:
     var Thing = Seq.defineModel('Thing', Seq.getTableFromMigration('things'));
     var Item  = Seq.defineModel('Item', Seq.getTableFromMigration('items'));
     Item.hasOne(Thing);
-    Item.hasOne(Thing, { as: 'anotherThing' });
+    Thing.belongsTo(Item);
 
-Done this, you can do the following things. Setting and Getting the things on an item:
+Please note that the column for the association is defined in the model where belongsTo is defined on. If a model is not yet defined, you can define it as String and the association will be initialized when the model is defined. In this way, you have no problem splitting the model definitions in different files.
+
+    // (In one file:)
+    var Thing = Seq.defineModel('Thing', Seq.getTableFromMigration('things'));
+    Thing.belongsTo('Item');
+    // and sometime later (maybe in another file):
+    var Item  = Seq.defineModel('Item', Seq.getTableFromMigration('items'));
+    Item.hasOne('Thing');
+
+Doing this, you can then do the following things. Setting and Getting the things on an item and on a thing:
 
     var thing1 = Thing.create({ name: "one" }),
         thing2 = Thing.create({ name: "two" }),
         item   = Item.create({ name: "an item" });
     item.setThing(thing1); // also possible: item.thing = thing1;
-    item.setAnotherThing(thing2);
-    item.getAnotherThing(function(theThing) { /* do stuff here */ });
+    item.getThing(function(err, theThing) { /* do stuff here */ });
     item.removeThing();
 
-If you want to save the item, make sure that you will save the associated objects first, else save will return `AssociationsNotSavedError`.
+If you want to save the item, make sure that you will save the associated objects first, else save will callback with error: `AssociationsNotSavedError`.
 
 
 ## Things to be aware of
