@@ -290,15 +290,21 @@ var modelTests = {
         Thing = Seq.getModel('Thing');
     Thing.find(3, function(err, thing) {
       if (err) throw err;
+
       Item.find(2, function(err, item) {
         if (err) throw err;
         item.setThing(thing);
         test.equal(item.isDirty, true);
+        test.equal(item.thingId, 3);
+
         item.save(function(err) {
+          if (err) throw err;
+
           client.query("SELECT * FROM items WHERE id=2", function(err, results) {
             if (err) throw err;
             test.equal(results[0].name, 'Balloon');
             test.equal(results[0].thing_id, 3);
+
             test.done();
           });
         });
@@ -307,8 +313,9 @@ var modelTests = {
   },
   'test adding a thing that is not saved to item with setThing method': function(test) {
     var Item  = Seq.getModel('Item'),
-        Thing = Seq.getModel('Thing');
-    var thing = Thing.create({ name: 'newThing' });
+        Thing = Seq.getModel('Thing'),
+        thing = Thing.create({ name: 'newThing' });
+
     Item.find(2, function(err, item) {
       if (err) throw err;
       item.setThing(thing);
@@ -326,13 +333,16 @@ var modelTests = {
           thing.save(function(err) {
             if (err) throw err;
             test.equal(item.thingId, thing.id);
+
             item.save(function(err) {
               if (err) throw err;
               test.equal(item.isDirty, false);
+
               client.query("SELECT * FROM items WHERE id=2", function(err, results) {
                 if (err) throw err;
                 test.equal(results[0].name, 'Balloon');
                 test.equal(results[0].thing_id, 4);
+
                 test.done();
               });
             });
@@ -381,6 +391,7 @@ var modelTests = {
         test.equal(item.isDirty, false);
         test.equal(thing.isNew, false);
         test.equal(thing.name, 'Door');
+
         test.done();
       });
     });

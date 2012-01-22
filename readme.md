@@ -113,7 +113,6 @@ It uses the [node_mysql](https://github.com/felixge/node-mysql) module by [Felix
 - chaining (of save, add and set methods...)
 - calc codecoverage?
 - fix Date locale problem and tests
-- tests for setThing(thing) will change thing.item_id
 - tests for setThings([thing]) will change thing.item_id and save that in db
 - make sure we only save changed attributes into db
 - take care of default value WHERE to set it?
