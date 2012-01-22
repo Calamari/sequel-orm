@@ -285,7 +285,7 @@ module.exports.updateTable = {
   setUp: function(cb) {
     var db = Seq.create(TEST_CONFIG);
     this.db = db;
-    client.query("DROP TABLE tasks;", function(err) {
+    client.query("DROP TABLE IF EXISTS tasks;", function(err) {
       if (err) throw err;
       db.createTable('tasks', function(table) {
         table.addColumn('name', Seq.dataTypes.VARCHAR());

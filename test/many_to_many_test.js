@@ -131,7 +131,7 @@ var generateTestData = function(db, thingsDef, itemsDef, cb) {
 
 var setup = function(type) {
   return function(cb) {
-    var db  = Seq.create(TEST_CONFIG);
+    var db  = Seq.createIfNotExistent(TEST_CONFIG);
     this.db = db;
     client.query("DROP TABLE things, items, items_to_things;", function() {
       var thingsDef = function(table) {
@@ -272,6 +272,7 @@ var modelTests = {
     item.save(function(err) {
       test.equal(err.constructor, Seq.errors.AssociationsNotSavedError);
       test.equal(item.isDirty, true);
+      test.equal(item.id, 0);
 
       client.query("SELECT * FROM items WHERE name='an item'", function(err, results) {
         if (err) throw err;
@@ -334,6 +335,7 @@ var modelTests = {
         Thing = Seq.getModel('Thing'),
         item  = Item.create({ name: 'an item' });
 
+// TODO: add tests for addThing(0) and load it before it
     item.addThing(1);
     test.equal(item.isDirty, true);
     test.equal(item.things.length, 0);
@@ -452,7 +454,7 @@ var modelTests = {
         test.equal(item.countAllThings(), 3, 'this are three things');
         test.equal(item.countAddedAssociations('Thing'), 1);
         test.equal(things.length, 3, 'we get saved and unsaved items');
-        test.equal(things[0].id, null);
+        test.equal(things[0].id, 0);
         test.equal(things[0].name, 'test');
         test.equal(things[1].id, 1);
         test.equal(things[2].id, 2);
@@ -708,7 +710,7 @@ var modelTests = {
       test.done();
     });
   },
-  'test it thing returns error if associated items are not saved': function(test) {
+  'test if thing returns error if associated items are not saved': function(test) {
     var Item   = Seq.getModel('Item'),
         Thing  = Seq.getModel('Thing'),
         item   = Item.create({ name: 'lala' });
@@ -724,7 +726,7 @@ var modelTests = {
       });
     });
   },
-  'test it thing can add and save items': function(test) {
+  'test if thing can add and save items': function(test) {
     var Item   = Seq.getModel('Item'),
         Thing  = Seq.getModel('Thing'),
         item   = Item.create({ name: 'lala' });

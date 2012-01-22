@@ -159,8 +159,8 @@ module.exports = {
         var ItemTable = Seq.getTableFromMigration('Item');
         test.ok(ItemTable.id.equals(Seq.dataTypes.INT())); // hmm, should be changed to autoincrement stuff...
         test.ok(ItemTable.name.equals(Seq.dataTypes.VARCHAR()));
-        test.ok(ItemTable.objectId.equals(Seq.dataTypes.INT()));
-        test.ok(ItemTable.awesomeThingId.equals(Seq.dataTypes.INT()));
+        test.ok(ItemTable.objectId.equals(Seq.dataTypes.INT({ allowNull: false })));
+        test.ok(ItemTable.awesomeThingId.equals(Seq.dataTypes.INT({ allowNull: false })));
         test.done();
       },
       'test removing key removes column': function(test) {
@@ -211,7 +211,7 @@ var generateTestData = function(db, thingsDef, itemsDef, cb) {
 };
 var setup = function(type) {
   return function(cb) {
-    var db  = Seq.create(TEST_CONFIG);
+    var db  = Seq.createIfNotExistent(TEST_CONFIG);
     this.db = db;
     client.query("DROP TABLE things, items;", function() {
       var thingsDef = function(table) {
@@ -656,7 +656,7 @@ var modelTests = {
     test.equal(thing.item, null);
 
     test.done();
-  },
+  }
 };
 
 module.exports['model'] = jaz.Object.extend({}, modelTests);

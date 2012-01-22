@@ -101,7 +101,7 @@ module.exports.modelInstanciation = {
           name: 'John',
           price: 42
         });
-    test.equal(item.id, null);
+    test.equal(item.id, 0);
     test.equal(item.name, 'John');
     test.equal(item.price, 42);
     test.equal(item.createdAt, null);
@@ -371,7 +371,7 @@ module.exports['model.remove'] = {
       thing.destroy(function(err) {
         if (err) throw err;
         test.equal(thing.isDeleted, true);
-        test.equal(thing.id, null);
+        test.equal(thing.id, 0);
         Thing.find(3, function(err, thing) {
           test.equal(err.constructor, Seq.errors.ItemNotFoundError, 'Should now be deleted from db');
           test.equal(thing, null);
