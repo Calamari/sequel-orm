@@ -38,20 +38,81 @@ Every predefined data type can has the following parameters: length (integer), d
 The addTimestamps method will add two columns to the table which will be automatically filled when item is saved and is updated.
 
 ### Defining a model
+Defining a model can be done in different ways. The easiest ist the following one:
+
+    var Pruduct = Seq.defineModel('Pruduct', {
+      title: Seq.dataTypes.VARCHAR({ length: 122 }),
+      price: Seq.dataTypes.INT(),
+      createdAt: Seq.dataTypes.DATETIME(),
+      updatedAt: Seq.dataTypes.DATETIME()
+    });
+
+In this method we are explicit what attributes the defined model will have. Another way of doing the same is to defined it through a migration on the SequelORM object.
+
+    SequelORM.createTable('products', function(table) {
+      table.addColumn('title', dataTypes.VARCHAR({ length: 122 }));
+      table.addColumn('price', dataTypes.FLOAT());
+      table.addTimestamps(); // this adds a created_at and updated_at column to the table
+    });
+    var Product = SequelORM.defineModel('Product', SequelORM.getTableFromMigration('products'));
+
+Calling createTable on the SequelORM object directly will not do anything on the database and therefore runs synchronously and does not need a callback method.
+
+The thrid parameter of the defineModel method is an object which can take one or more of the following keys:
+
+- *instanceMethods:* Methods that can be directly called on every instanciated Record object
+- *classMethods:* Methods that can be called on the Model object itself
+- *hooks:* Methods that will be called on several points in the lifetime of an object. (See the hooks section below for more information.)
+
+Wanna an example? Take this:
+
+    var Product = SequelORM.defineModel('Product', SequelORM.getTableFromMigration('products'), {
+      instanceMethods: {
+        doublePrice: function() {
+          this.price *= 2;
+        }
+      },
+      classMethods: {
+        findCheapProducts: function(cb) {
+          this.findAll({ where: 'products.price < 5' }, cb);
+        }
+      },
+      hooks: {
+        afterLoad: function() {
+          this.price += 5;
+        },
+        afterChange: function(key, value) {
+          if (key === 'title') {
+            this.title = 'Awesome product:' + this.title;
+          }
+        }
+      }
+    });
+
 
 ### Creating a series of migration files
 
 ### Creating great middleare with hooks
-- after create
-- before and after changing a property
-- before and after validate
-- before and after save
-- after loaded
+There are two types of hooks: *model hooks* which will be defined on the model itself and are called on every instance of this model and *instance hooks* which will only be defined on that instance just like an EventEmitter. 
 
-Instance hooks:
-- save
+#### Model hooks:
+The following model hooks are available:
 
-Instance hooks are used like a typical Node.js EventEmitter:
+- *afterCreate(data):* Called directly after a new record was created (not loaded from db). First parameter is object with defined data.
+- *afterLoad(data):* Called after a record was loaded from db. First parameter is object with loaded data for this record.
+- *beforeChange(key, value):* Called before an property of the instance is changed.
+- *afterChange(key, value):* Called directly after an property of the instance is changed.
+- *beforeValidate():* Called before the instance gets validated. (Usually directly before save.)
+- *afterValidate(isValidated):* Called after all validators of instance has been run. First parameter is a boolean telling if the validations did run successfully or not.
+- *beforeSave():* Called before an record gets saved into db.
+- *afterSave():* Called before an record did get saved successfully into db.
+
+#### Instance hooks:
+At the moment there is only one instance hook available:
+
+- *save:* called after record was saved into db
+
+Instance hooks are used like a typical Node.js EventEmitter. So the methods on, once, removeListener, etc. are all available.
 
     var Thing  = SequelORM.getModel('Thing'),
         myFunc = function() { console.log('Yeah I was saved'); };
