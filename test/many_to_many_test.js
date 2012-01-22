@@ -257,6 +257,7 @@ var modelTests = {
         item.addThing(thing);
         test.equal(item.isDirty, false);
         test.equal(item.countAddedAssociations('Thing'), 0);
+        test.equal(item.thingIds.length, 2);
 
         test.done();
       });
@@ -291,7 +292,7 @@ var modelTests = {
       if (err) throw err;
 
       Thing.findAll({ where: 'things.id<=2' }, function(err, things) {
-      if (err) throw err;
+        if (err) throw err;
         item.addThings(things);
         test.equal(item.isDirty, true);
         test.equal(item.countAddedAssociations('Thing'), 2);
@@ -325,7 +326,33 @@ var modelTests = {
     test.equal(item.thingIds.length, 0);
 
     thing.save(function(err) {
+      if (err) throw err;
       test.equal(item.thingIds[0], thing.id);
+
+      test.done();
+    });
+  },
+  'test adding no thing to item changes nothing': function(test) {
+    var Item  = Seq.getModel('Item'),
+        Thing = Seq.getModel('Thing'),
+        item  = Item.create({ name: 'an item' });
+
+    Item.find(2, function(err, item) {
+      if (err) throw err;
+      item.addThing();
+      test.equal(item.isDirty, false);
+      test.equal(item.things.length, 0);
+      test.equal(item.thingIds.length, 0);
+
+      item.addThing([]);
+      test.equal(item.isDirty, false);
+      test.equal(item.things.length, 0);
+      test.equal(item.thingIds.length, 0);
+
+      item.addThing(0);
+      test.equal(item.isDirty, false);
+      test.equal(item.things.length, 0);
+      test.equal(item.thingIds.length, 0);
 
       test.done();
     });
@@ -335,7 +362,6 @@ var modelTests = {
         Thing = Seq.getModel('Thing'),
         item  = Item.create({ name: 'an item' });
 
-// TODO: add tests for addThing(0) and load it before it
     item.addThing(1);
     test.equal(item.isDirty, true);
     test.equal(item.things.length, 0);
