@@ -186,6 +186,7 @@ It uses the [node_mysql](https://github.com/felixge/node-mysql) module by [Felix
 - fix Date locale problem and tests
 - make sure we only save changed attributes into db
 - take care of default value WHERE to set it?
+- hooks filling up createdAt and updatedAt columns
 
 ### v0.2:
 - dont mark things as dirty if orignal state is met again
