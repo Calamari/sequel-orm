@@ -229,8 +229,7 @@ var setup = function(type) {
         var Item  = Seq.defineModel('Item', Seq.getTableFromMigration('items'));
         Item.belongsTo(Thing);
         Thing.hasOne(Item);
-      }
-      if (type === 'late defined') {
+      } else if (type === 'late defined') {
         Seq.removeModel('Thing');
         var Item  = Seq.defineModel('Item', Seq.getTableFromMigration('items'));
         Item.belongsTo('Thing');

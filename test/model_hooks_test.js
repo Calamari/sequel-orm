@@ -235,8 +235,8 @@ module.exports['instance'] = {
     test.expect(2);
     var Item = Seq.getModel('Item'),
         item = Item.create({ name: 'Bob', price: 42 });
-    item.once('save', function(theItem) {
-      test.equal(theItem, item);
+    item.once('save', function() {
+      test.equal(this, item);
       test.equal(item.isDirty, false);
     });
     item.save(function(err) {
