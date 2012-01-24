@@ -1,6 +1,6 @@
 {
   "author": "Georg Tavonius <g.tavonius@gmail.com> (http://jaz-lounge.com)",
-  "name": "SequelORM",
+  "name": "sequel-orm",
   "description": "MySQL ORM that is easy to use, understand and enhance.",
   "version": "0.0.1",
   "homepage": "",
