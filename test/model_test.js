@@ -306,23 +306,152 @@ module.exports.modelInstanciation = {
           name: 'Willy',
           price: 2
         });
+
     item.save(function(err) {
       client.query("SELECT * FROM items", function(err, results) {
         if (err) throw err;
         test.equal(results.length, 1);
+
         test.done();
       });
     });
-    var db  = Seq.create(TEST_CONFIG);
+    var db  = Seq.createIfNotExistent(TEST_CONFIG);
   },
   'test false validation will prevent saving': function(test) {
     var Item = Seq.defineModel('Item', {
         name: Seq.dataTypes.VARCHAR({ required: true })
       }),
       item = Item.create();
+
     item.save(function(err) {
       test.equal(err.constructor, Seq.errors.ItemNotValidError, "item should not be valid");
+
       test.done();
+    });
+  }
+};
+
+module.exports['getters & setters'] = {
+  setUp: function(cb) {
+    var db  = Seq.createIfNotExistent(TEST_CONFIG);
+    this.db = db;
+    client.query("DROP TABLE things;", function() {
+      var tableDef = function(table) {
+        table.addColumn('name', Seq.dataTypes.VARCHAR());
+        table.addColumn('price', Seq.dataTypes.INT());
+      };
+      Seq.createTable('things', tableDef);
+      db.createTable('things', tableDef, function() {
+        cb();
+      });
+    });
+  },
+  'test element.data offers all data directly': function(test) {
+    var Thing = Seq.defineModel('Thing', Seq.getTableFromMigration('things')),
+        thing = Thing.create({ name: 'bla', test: 'foo', bar: 42 });
+    
+    test.equal(thing.data.name, 'bla');
+    test.equal(thing.data.test, 'foo');
+    test.equal(thing.data.bar, 42);
+    test.done();
+  },
+  'test additional parameters (item was created with) can be retrieved via getters': function(test) {
+    var Thing = Seq.defineModel('Thing', Seq.getTableFromMigration('things'), {
+          getter: {
+            test: function() { return this.data.test; },
+            bar:  function() { return this.data.bar * 2; }
+          }
+        }),
+        thing = Thing.create({ name: 'bla', test: 'foo', bar: 42 });
+    
+    test.equal(thing.test, 'foo');
+    test.equal(thing.bar, 84);
+    test.done();
+  },
+  'test getters will override buildin getters': function(test) {
+    var Thing = Seq.defineModel('Thing', Seq.getTableFromMigration('things'), {
+          getter: {
+            name: function() { return this.data.test + this.data.name; }
+          }
+        }),
+        thing = Thing.create({ name: 'bla', test: 'foo', price: 2 });
+
+    test.equal(thing.name, 'foobla');
+    test.equal(thing.price, 2, 'not changed getter should stay untouched');
+    test.done();
+  },
+  'test setter can override buildin setters': function(test) {
+    var Thing = Seq.defineModel('Thing', Seq.getTableFromMigration('things'), {
+          setter: {
+            name: function(val) { return val + this.data.name; }
+          }
+        }),
+        thing = Thing.create({ name: 'bla' });
+
+    test.equal(thing.name, 'bla');
+    thing.name = 'Bob';
+    test.equal(thing.name, 'Bobbla');
+    thing.name = 'Tim';
+    test.equal(thing.name, 'TimBobbla');
+    
+    test.done();
+  },
+  'test setter can set not defined attributes': function(test) {
+    var Thing = Seq.defineModel('Thing', Seq.getTableFromMigration('things'), {
+          setter: {
+            something: function(val) { return val + " thing"; }
+          }
+        }),
+        thing = Thing.create({ name: 'bla' }),
+        undef;
+
+    test.equal(thing.data.something, undef);
+    thing.something = 'Foo';
+    test.equal(thing.data.something, 'Foo thing');
+    
+    test.done();
+  },
+  'test getter gets data of later added attribute': function(test) {
+    var Thing = Seq.defineModel('Thing', Seq.getTableFromMigration('things'), {
+          getter: {
+            test: function() { return this.data.test; },
+            foo: function() { return 'bar'; }
+          },
+          setter: {
+            test: function(val) { return val; }
+          }
+        }),
+        thing = Thing.create(),
+        undef;
+
+    test.equal(thing.test, undef);
+    test.equal(thing.foo, 'bar');
+    thing.test = 'testy';
+    test.equal(thing.test, 'testy');
+    test.equal(thing.foo, 'bar');
+    test.done();
+  },
+  'test additional parameters will not be saved to db': function(test) {
+    var Thing = Seq.defineModel('Thing', Seq.getTableFromMigration('things'), {
+          getter: {
+            name: function() { return this.data.test + this.data.name; }
+          }
+        }),
+        thing = Thing.create({ name: 'bla', test: 'foo', xxx: 1 });
+
+    test.equal(thing.name, 'foobla');
+    thing.save(function(err) {
+      if (err) throw err;
+
+      client.query("SELECT * FROM things", function(err, results) {
+        if (err) throw err;
+        test.equal(results.length, 1);
+        test.ok(!results[0].xxx);
+        test.ok(!results[0].test);
+        test.equal(results[0].name, 'bla');
+
+        test.done();
+      });
     });
   }
 };
