@@ -14,7 +14,8 @@
     "nodeunit": "~0.6",
     "mysql": "~0.9",
     "async": "~0.1",
-    "yuidocjs": "git://github.com/apm/yuidocjs.git"
+    "yuidocjs": "git://github.com/apm/yuidocjs.git",
+    "benchmark": "~0.2"
   },
   "devDependencies": {}
 }
