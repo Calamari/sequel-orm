@@ -40,7 +40,7 @@ The addTimestamps method will add two columns to the table which will be automat
 ### Defining a model
 Defining a model can be done in different ways. The easiest ist the following one:
 
-    var Pruduct = Seq.defineModel('Pruduct', {
+    var Product = Seq.defineModel('Product', {
       title: Seq.dataTypes.VARCHAR({ length: 122 }),
       price: Seq.dataTypes.INT(),
       createdAt: Seq.dataTypes.DATETIME(),
@@ -90,7 +90,8 @@ Wanna an example? Take this:
     });
 
 
-### Creating a series of migration files
+### Interacting with the models and database
+
 
 ### Creating great middleare with hooks
 There are two types of hooks: *model hooks* which will be defined on the model itself and are called on every instance of this model and *instance hooks* which will only be defined on that instance just like an EventEmitter. 
@@ -128,7 +129,21 @@ You can find element from the database like that:
     var projects = Project.findAll({ where: 'title LIKE ?', limit: 5, offset: 10 }, 'create%');
     // creates a query like SELECT * FROM projects WHERE title LIKE 'create%' LIMIT 10,5
 
-### Migrations
+### Creating a series of migration files
+A simple example of doing a migration:
+
+    module.exports = {
+      up: function(db, next) {
+        db.createTable('users', function(table) {
+          // table definition here...
+        }, next);
+      },
+      down: function(db, next) {
+        db.dropTable('users', next);
+      }
+    };
+
+You only need then a script, that goes through all your migration files and then calling either the up or down method on the SequelORM instance you created (or on the base class, for generating migration and not doing things on the database). 
 
 ### Associations
 The association concept is pretty much the same as in [the Active Records of Ruby on Rails](http://guides.rubyonrails.org/association_basics.html). But at the moment much more basic.
@@ -187,6 +202,7 @@ It uses the [node_mysql](https://github.com/felixge/node-mysql) module by [Felix
 - make sure we only save changed attributes into db
 - take care of default value WHERE to set it?
 - hooks filling up createdAt and updatedAt columns
+- destroyAll method
 
 ### v0.2:
 - dont mark things as dirty if orignal state is met again
@@ -203,8 +219,11 @@ It uses the [node_mysql](https://github.com/felixge/node-mysql) module by [Felix
 - association validation
 - Thing.findAll({ where: 'things.id<=2' },... Think about adding table name automatically for inputs??
 - Save multiple records at once Record.save([r1, r2, r3])
+- count method
 
 ### later:
+- findEach method like in rails: http://guides.rubyonrails.org/active_record_querying.html
+- Post.comments.push({ text: "bla" }) should create a Comment and push it to Post as commetns (e.g. Post.addComments(Comment.create({ text: "bla" })))
 - get and validate hook, as second type of hooks?
 - load element inclusive all associated elements
 - create docs
