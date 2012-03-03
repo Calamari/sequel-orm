@@ -147,7 +147,7 @@ module.exports['models'] = {
     test.expect(2);
     Seq.on('log', function(status, message) {
       test.equal(status, Seq.LOG_LEVEL_INFO);
-      test.equal(message, "Sending SQL: INSERT INTO `products` (name) VALUES (?);");
+      test.equal(message, "Sending SQL: INSERT INTO `products` (`name`) VALUES (?);");
     });
     var Product = Seq.getModel('Product'),
         product = Product.create({ name: 'Somethings todo' });
