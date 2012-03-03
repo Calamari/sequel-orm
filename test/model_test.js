@@ -336,6 +336,7 @@ module.exports['getters & setters'] = {
     var db  = Seq.createIfNotExistent(TEST_CONFIG);
     this.db = db;
     client.query("DROP TABLE things;", function() {
+      Seq.clearTableDefinitions();
       var tableDef = function(table) {
         table.addColumn('name', Seq.dataTypes.VARCHAR());
         table.addColumn('price', Seq.dataTypes.INT());
@@ -349,7 +350,7 @@ module.exports['getters & setters'] = {
   'test element.data offers all data directly': function(test) {
     var Thing = Seq.defineModel('Thing', Seq.getTableFromMigration('things')),
         thing = Thing.create({ name: 'bla', test: 'foo', bar: 42 });
-    
+
     test.equal(thing.data.name, 'bla');
     test.equal(thing.data.test, 'foo');
     test.equal(thing.data.bar, 42);
@@ -363,7 +364,7 @@ module.exports['getters & setters'] = {
           }
         }),
         thing = Thing.create({ name: 'bla', test: 'foo', bar: 42 });
-    
+
     test.equal(thing.test, 'foo');
     test.equal(thing.bar, 84);
     test.done();
@@ -393,7 +394,7 @@ module.exports['getters & setters'] = {
     test.equal(thing.name, 'Bobbla');
     thing.name = 'Tim';
     test.equal(thing.name, 'TimBobbla');
-    
+
     test.done();
   },
   'test setter can set not defined attributes': function(test) {
@@ -408,7 +409,7 @@ module.exports['getters & setters'] = {
     test.equal(thing.data.something, undef);
     thing.something = 'Foo';
     test.equal(thing.data.something, 'Foo thing');
-    
+
     test.done();
   },
   'test getter gets data of later added attribute': function(test) {
@@ -524,8 +525,8 @@ module.exports['model.remove'] = {
  TODO:
   Test datetimes mit before save and after load methods
   Define custom before save methods
-  
-  
+
+
   later on:
   caching (remember item,id combo in cache and don't query for them)
  */
