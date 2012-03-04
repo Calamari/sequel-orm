@@ -267,6 +267,7 @@ var modelTests = {
   'test adding thing to item': function(test) {
     var Item  = Seq.getModel('Item'),
         Thing = Seq.getModel('Thing');
+
     Thing.find(3, function(err, thing) {
       if (err) throw err;
       Item.find(2, function(err, item) {
@@ -555,7 +556,7 @@ var modelTests = {
     var Item  = Seq.getModel('Item'),
         Thing = Seq.getModel('Thing');
 
-    
+
     Thing.find(1, function(err, thing) {
       if (err) throw err;
       test.equal(thing.isDirty, false);
@@ -613,7 +614,7 @@ var modelTests = {
 
         thing.getItem(function(err) {
           test.equal(err.constructor, Seq.errors.ItemNotFoundError);
-   
+
           thing.save(function(err) {
             if (err) throw err;
 

@@ -53,18 +53,15 @@ var setup = function(type) {
             table.addBelongsToColumn('thing', { as: 'bar' });
           };
 
+      Seq.clearTableDefinitions();
       Seq.createTable('things', thingsDef);
       Seq.createTable('items', itemsDef);
       Seq.createTable('objs', objsDef);
       if (type === 'object') {
         var Thing = Seq.defineModel('Thing', Seq.getTableFromMigration('things'));
         var Item  = Seq.defineModel('Item', Seq.getTableFromMigration('items'));
-        var Obj   = Seq.defineModel('Object', Seq.getTableFromMigration('objs'));
         Item.belongsTo(Thing);
         Thing.hasMany(Item);
-
-        Obj.belongsTo(Thing);
-        Thing.hasMany(Obj, { as: 'bar' });
       }
       if (type === 'late defined') {
         Seq.removeModel('Thing');
