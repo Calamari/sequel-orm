@@ -94,7 +94,7 @@ Wanna an example? Take this:
 
 
 ### Creating great middleare with hooks
-There are two types of hooks: *model hooks* which will be defined on the model itself and are called on every instance of this model and *instance hooks* which will only be defined on that instance just like an EventEmitter. 
+There are two types of hooks: *model hooks* which will be defined on the model itself and are called on every instance of this model and *instance hooks* which will only be defined on that instance just like an EventEmitter.
 
 #### Model hooks:
 The following model hooks are available:
@@ -143,7 +143,7 @@ A simple example of doing a migration:
       }
     };
 
-You only need then a script, that goes through all your migration files and then calling either the up or down method on the SequelORM instance you created (or on the base class, for generating migration and not doing things on the database). 
+You only need then a script, that goes through all your migration files and then calling either the up or down method on the SequelORM instance you created (or on the base class, for generating migration and not doing things on the database).
 
 ### Associations
 The association concept is pretty much the same as in [the Active Records of Ruby on Rails](http://guides.rubyonrails.org/association_basics.html). But at the moment much more basic.
@@ -203,6 +203,7 @@ It uses the [node_mysql](https://github.com/felixge/node-mysql) module by [Felix
 - take care of default value WHERE to set it?
 - hooks filling up createdAt and updatedAt columns
 - destroyAll method
+- jaz-toolkit updated and on github
 
 ### v0.2:
 - dont mark things as dirty if orignal state is met again

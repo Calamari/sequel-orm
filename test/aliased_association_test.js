@@ -28,7 +28,7 @@ var generateTestData = function(db, thingsDef, itemsDef, cb) {
 
       client.query("INSERT INTO things (`id`, `name`) VALUES " + valuesThings.join(','), jaz.Array.flatten(things), function(err) {
         if (err) throw err;
-        client.query("INSERT INTO items (`id`, `name`, `thing_id`) VALUES " + valuesItems.join(','), jaz.Array.flatten(items), function(err) {
+        client.query("INSERT INTO items (`id`, `name`, `thingy_id`) VALUES " + valuesItems.join(','), jaz.Array.flatten(items), function(err) {
           if (err) throw err;
           cb();
         });
@@ -46,33 +46,24 @@ var setup = function(type) {
           },
           itemsDef = function(table) {
             table.addColumn('name', Seq.dataTypes.VARCHAR());
-            table.addBelongsToColumn('thing');
-          },
-          objsDef = function(table) {
-            table.addColumn('thing', Seq.dataTypes.VARCHAR());
-            table.addBelongsToColumn('thing', { as: 'bar' });
+            table.addBelongsToColumn('thing', { as: 'thingy' });
           };
 
       Seq.createTable('things', thingsDef);
       Seq.createTable('items', itemsDef);
-      Seq.createTable('objs', objsDef);
       if (type === 'object') {
         var Thing = Seq.defineModel('Thing', Seq.getTableFromMigration('things'));
         var Item  = Seq.defineModel('Item', Seq.getTableFromMigration('items'));
-        var Obj   = Seq.defineModel('Object', Seq.getTableFromMigration('objs'));
-        Item.belongsTo(Thing);
-        Thing.hasMany(Item);
-
-        Obj.belongsTo(Thing);
-        Thing.hasMany(Obj, { as: 'bar' });
+        Item.belongsTo(Thing, { name: 'Thingy' });
+        Thing.hasMany(Item, { name: 'Mytem', selfName: 'Thingy' });
       }
       if (type === 'late defined') {
         Seq.removeModel('Thing');
         var Item  = Seq.defineModel('Item', Seq.getTableFromMigration('items'));
-        Item.belongsTo('Thing');
+        Item.belongsTo('Thing', { name: 'Thingy' });
         // and def
         var Thing = Seq.defineModel('Thing', Seq.getTableFromMigration('things'));
-        Thing.hasMany('Item');
+        Thing.hasMany('Item', { name: 'Mytem', selfName: 'Thingy' });
       }
 
       generateTestData(db, thingsDef, itemsDef, cb);
@@ -82,18 +73,18 @@ var setup = function(type) {
 
 var modelTests = {
   tearDown: function(cb) {
-    Seq.removeAllListeners('model_defined');
     cb();
   },
   'test reading ids of has many connected items to record (positive test)': function(test) {
     var Item  = Seq.getModel('Item'),
         Thing = Seq.getModel('Thing');
-
+Seq.on('log', console.log)
     Thing.find(3, function(err, thing) {
       if (err) throw err;
-      test.equal(thing.itemIds.length, 2);
-      test.equal(thing.itemIds[0], 1);
-      test.equal(thing.itemIds[1], 2);
+      console.log(thing.data);
+      test.equal(thing.mytemIds.length, 2);
+      test.equal(thing.mytemIds[0], 1);
+      test.equal(thing.mytemIds[1], 2);
 
       test.done();
     });
@@ -104,8 +95,8 @@ var modelTests = {
 
     Thing.find(2, function(err, thing) {
       if (err) throw err;
-      test.equal(thing.itemIds.length, 0);
-      test.equal(thing.itemIds.constructor, Array);
+      test.equal(thing.mytemIds.length, 0);
+      test.equal(thing.mytemIds.constructor, Array);
 
       test.done();
     });
@@ -117,24 +108,24 @@ var modelTests = {
     Thing.find(2, function(err, thing) {
       if (err) throw err;
       test.equal(thing.isDirty, false);
-      thing.addItem();
+      thing.addMytem();
       test.equal(thing.isDirty, false);
-      thing.addItem([]);
+      thing.addMytem([]);
       test.equal(thing.isDirty, false);
-      thing.addItem(0);
+      thing.addMytem(0);
       test.equal(thing.isDirty, false);
-      test.equal(thing.countAddedAssociations('Item'), 0);
-      thing.addItem(1);
+      test.equal(thing.countAddedAssociations('Mytem'), 0);
+      thing.addMytem(1);
       test.equal(thing.isDirty, true);
-      test.equal(thing.itemIds.length, 1);
-      test.equal(thing.itemIds[0], 1);
-      test.equal(thing.countAddedAssociations('Item'), 1);
-      thing.addItem(2,3);
+      test.equal(thing.mytemIds.length, 1);
+      test.equal(thing.mytemIds[0], 1);
+      test.equal(thing.countAddedAssociations('Mytem'), 1);
+      thing.addMytem(2,3);
       test.equal(thing.isDirty, true);
-      test.equal(thing.itemIds.length, 3);
-      test.equal(thing.itemIds[1], 2);
-      test.equal(thing.itemIds[2], 3);
-      test.equal(thing.countAddedAssociations('Item'), 3);
+      test.equal(thing.mytemIds.length, 3);
+      test.equal(thing.mytemIds[1], 2);
+      test.equal(thing.mytemIds[2], 3);
+      test.equal(thing.countAddedAssociations('Mytem'), 3);
 
       test.done();
     });
@@ -146,43 +137,43 @@ var modelTests = {
     Thing.find(3, function(err, thing) {
       if (err) throw err;
       test.equal(thing.isDirty, false);
-      test.equal(thing.itemIds.length, 2);
-      test.equal(thing.countAddedAssociations('Item'), 0);
+      test.equal(thing.mytemIds.length, 2);
+      test.equal(thing.countAddedAssociations('Mytem'), 0);
 
-      thing.addItem(1);
+      thing.addMytem(1);
       test.equal(thing.isDirty, false);
-      test.equal(thing.itemIds.length, 2);
-      test.equal(thing.countAddedAssociations('Item'), 0);
+      test.equal(thing.mytemIds.length, 2);
+      test.equal(thing.countAddedAssociations('Mytem'), 0);
 
-      thing.addItem(2);
+      thing.addMytem(2);
       test.equal(thing.isDirty, false);
-      test.equal(thing.itemIds.length, 2);
-      test.equal(thing.countAddedAssociations('Item'), 0);
+      test.equal(thing.mytemIds.length, 2);
+      test.equal(thing.countAddedAssociations('Mytem'), 0);
 
-      thing.addItem(1,2);
+      thing.addMytem(1,2);
       test.equal(thing.isDirty, false);
-      test.equal(thing.itemIds.length, 2);
-      test.equal(thing.countAddedAssociations('Item'), 0);
+      test.equal(thing.mytemIds.length, 2);
+      test.equal(thing.countAddedAssociations('Mytem'), 0);
 
-      thing.addItem([1,2,2]);
+      thing.addMytem([1,2,2]);
       test.equal(thing.isDirty, false);
-      test.equal(thing.itemIds.length, 2);
+      test.equal(thing.mytemIds.length, 2);
       test.equal(thing.countAddedAssociations('Item'), 0);
 
-      thing.addItem(1,3);
+      thing.addMytem(1,3);
       test.equal(thing.isDirty, true);
-      test.equal(thing.itemIds.length, 3);
+      test.equal(thing.mytemIds.length, 3);
       test.equal(thing.countAddedAssociations('Item'), 1);
 
       test.done();
     });
   },
-  'test addItem is equals to addItems': function(test) {
+  'test addMytem is equals to addMytems': function(test) {
     var Item  = Seq.getModel('Item'),
         Thing = Seq.getModel('Thing'),
         thing = Thing.create({ name: 'bla' });
 
-    test.equal(thing.addItem, thing.addItems);
+    test.equal(thing.addMytem, thing.addMytems);
 
     test.done();
   },
@@ -200,22 +191,22 @@ var modelTests = {
         test.equal(thing.isDirty, false);
         test.equal(thing.countAddedAssociations('Item'), 0);
 
-        thing.addItem(item1);
+        thing.addMytem(item1);
         test.equal(thing.items.length, 1);
         test.equal(thing.isDirty, true);
         test.equal(thing.countAddedAssociations('Item'), 1);
 
-        thing.addItem(item1);
+        thing.addMytem(item1);
         test.equal(thing.items.length, 1);
         test.equal(thing.countAddedAssociations('Item'), 1);
 
-        thing.addItem(item2);
+        thing.addMytem(item2);
         test.equal(thing.items.length, 2);
         test.equal(thing.countAddedAssociations('Item'), 2);
 
         test.equal(thing2.items.length, 0);
         test.equal(thing2.isDirty, false);
-        thing2.addItems(item1, item2);
+        thing2.addMytems(item1, item2);
         test.equal(thing2.items.length, 2);
         test.equal(thing2.isDirty, true);
 
@@ -240,16 +231,16 @@ var modelTests = {
 
     Item.find(1, function(err, item) {
       if (err) throw err;
-      thing.addItem(1);
+      thing.addMytem(1);
       test.equal(thing.items.length, 0);
-      test.equal(thing.itemIds.length, 1);
-      test.equal(thing.itemIds[0], item.id);
+      test.equal(thing.mytemIds.length, 1);
+      test.equal(thing.mytemIds[0], item.id);
       test.equal(thing.countAddedAssociations('Item'), 1);
 
-      thing.addItem(item);
+      thing.addMytem(item);
       test.equal(thing.items.length, 1);
-      test.equal(thing.itemIds.length, 1);
-      test.equal(thing.itemIds[0], item.id);
+      test.equal(thing.mytemIds.length, 1);
+      test.equal(thing.mytemIds[0], item.id);
       test.equal(thing.countAddedAssociations('Item'), 1);
 
       test.done();
@@ -262,16 +253,16 @@ var modelTests = {
 
     Item.find(1, function(err, item) {
       if (err) throw err;
-      thing.addItem(item);
+      thing.addMytem(item);
       test.equal(thing.items.length, 1);
-      test.equal(thing.itemIds.length, 1);
-      test.equal(thing.itemIds[0], item.id);
+      test.equal(thing.mytemIds.length, 1);
+      test.equal(thing.mytemIds[0], item.id);
       test.equal(thing.countAddedAssociations('Item'), 1);
 
-      thing.addItem(1);
+      thing.addMytem(1);
       test.equal(thing.items.length, 1);
-      test.equal(thing.itemIds.length, 1);
-      test.equal(thing.itemIds[0], item.id);
+      test.equal(thing.mytemIds.length, 1);
+      test.equal(thing.mytemIds[0], item.id);
       test.equal(thing.countAddedAssociations('Item'), 1);
 
       test.done();
@@ -283,7 +274,7 @@ var modelTests = {
         item  = Item.create({ name: 'an item' }),
         thing = Thing.create({ name: 'a thing' });
 
-    thing.addItem(item);
+    thing.addMytem(item);
     thing.save(function(err) {
       test.equal(err.constructor, Seq.errors.AssociationsNotSavedError);
       test.equal(thing.isDirty, true);
@@ -306,7 +297,7 @@ var modelTests = {
       if (err) throw err;
       test.equal(thing.isDirty, false);
 
-      thing.addItems(2,3);
+      thing.addMytems(2,3);
       test.equal(thing.isDirty, true);
       test.equal(thing.countAddedAssociations('Item'), 2);
 
@@ -316,7 +307,7 @@ var modelTests = {
         test.equal(thing.countAddedAssociations('Item'), 0);
         test.equal(thing.id, 4);
 
-        client.query("SELECT * FROM items WHERE thing_id=4", function(err, results) {
+        client.query("SELECT * FROM items WHERE thingy_id=4", function(err, results) {
           if (err) throw err;
           test.equal(results.length, 2);
           test.equal(results[0].id, 2);
@@ -333,12 +324,12 @@ var modelTests = {
         item  = Item.create({ name: 'my item' }),
         thing = Thing.create({ name: 'great stuff' });
 
-    thing.addItem(item);
-    test.equal(thing.itemIds.length, 0);
+    thing.addMytem(item);
+    test.equal(thing.mytemIds.length, 0);
 
     item.save(function(err) {
       if (err) throw err;
-      test.equal(thing.itemIds[0], item.id);
+      test.equal(thing.mytemIds[0], item.id);
 
       test.done();
     });
@@ -348,12 +339,12 @@ var modelTests = {
         Thing = Seq.getModel('Thing'),
         thing = Thing.create({ name: 'BAM' });
 
-    thing.addItems(2, 3);
+    thing.addMytems(2, 3);
 
     thing.save(function(err) {
       if (err) throw err;
 
-      thing.getItems(function(err, items) {
+      thing.getMytems(function(err, items) {
         if (err) throw err;
         test.equal(items.length, 2);
         test.equal(items[0].id, 2);
@@ -368,12 +359,12 @@ var modelTests = {
         Thing = Seq.getModel('Thing'),
         thing = Thing.create({ name: 'BAM' });
 
-    thing.addItem(2);
+    thing.addMytem(2);
 
     thing.save(function(err) {
       if (err) throw err;
 
-      thing.getItem(2, function(err, item) {
+      thing.getMytem(2, function(err, item) {
         if (err) throw err;
         test.equal(item.class, 'ItemModel');
         test.equal(item.id, 2);
@@ -387,12 +378,12 @@ var modelTests = {
         Thing = Seq.getModel('Thing'),
         thing = Thing.create({ name: 'BAM' });
 
-    thing.addItem(2);
+    thing.addMytem(2);
 
     thing.save(function(err) {
       if (err) throw err;
 
-      thing.getItem(3, function(err, item) {
+      thing.getMytem(3, function(err, item) {
         test.equal(err.constructor, Seq.errors.NotAssociatedItemError)
 
         test.done();
@@ -406,7 +397,7 @@ var modelTests = {
     Thing.find(3, function(err, thing) {
       if (err) throw err;
 
-      thing.getItems(function(err, items) {
+      thing.getMytems(function(err, items) {
         if (err) throw err;
         test.equal(items.length, 2);
         test.equal(items[0].id, 1);
@@ -425,16 +416,16 @@ var modelTests = {
 
       Item.findAll({ where: 'items.id<=2' }, function(err, items) {
         if (err) throw err;
-        thing.addItems(items);
-        test.equal(thing.countAddedAssociations('Item'), 2);
-        thing.removeItem(items[0]);
-        test.equal(thing.countAddedAssociations('Item'), 1);
+        thing.addMytems(items);
+        test.equal(thing.countAddedAssociations('Mytem'), 2);
+        thing.removeMytem(items[0]);
+        test.equal(thing.countAddedAssociations('Mytem'), 1);
         test.equal(thing.isDirty, true);
 
         thing.save(function(err) {
           if (err) throw err;
           test.equal(thing.isDirty, false);
-          thing.removeItem(items[1]);
+          thing.removeMytem(items[1]);
           test.equal(thing.isDirty, true);
 
           client.query("SELECT * FROM items WHERE thing_id=1", function(err, results) {
@@ -455,17 +446,17 @@ var modelTests = {
         item2 = Item.create({ name: 'an item too' }),
         thing = Thing.create({ name: 'a thing' });
 
-    thing.addItem(item, item2);
+    thing.addMytem(item, item2);
     test.equal(thing.items.length, 2);
-    test.equal(thing.countAddedAssociations('Item'), 2);
+    test.equal(thing.countAddedAssociations('Mytem'), 2);
     thing.removeAllItems();
     test.equal(thing.items.length, 0);
-    test.equal(thing.countAddedAssociations('Item'), 0);
+    test.equal(thing.countAddedAssociations('Mytem'), 0);
 
     thing.save(function(err, savedThing) {
       if (err) throw err;
 
-      savedThing.getItems(function(err, items) {
+      savedThing.getMytems(function(err, items) {
         if (err) throw err;
         test.equal(items.length, 0);
 
@@ -479,15 +470,15 @@ var modelTests = {
 
     Thing.find(3, function(err, thing) {
       if (err) throw err;
-      test.equal(thing.itemIds.length, 2);
+      test.equal(thing.mytemIds.length, 2);
       thing.removeAllItems();
-      test.equal(thing.itemIds.length, 0);
+      test.equal(thing.mytemIds.length, 0);
       test.equal(thing.countItemsToRemove(), 2);
 
       thing.save(function(err, savedThing) {
         if (err) throw err;
 
-        savedThing.getItems(function(err, items) {
+        savedThing.getMytems(function(err, items) {
           if (err) throw err;
           test.equal(items.length, 0);
 
@@ -503,10 +494,10 @@ var modelTests = {
         item2 = Item.create({ name: 'an item too' }),
         thing = Thing.create({ name: 'a thing' });
 
-    thing.addItem(item, item2);
+    thing.addMytem(item, item2);
     test.equal(thing.items.length, 2);
-    test.equal(thing.countAddedAssociations('Item'), 2);
-    thing.removeItem(item2);
+    test.equal(thing.countAddedAssociations('Mytem'), 2);
+    thing.removeMytem(item2);
     test.equal(thing.items.length, 1);
     test.equal(thing.countItemsToRemove(), 0, 'we removed only just added items');
 
@@ -519,7 +510,7 @@ var modelTests = {
     Thing.find(3, function(err, thing) {
       if (err) throw err;
       test.equal(thing.countAllItems(), 2);
-      thing.removeItem(1);
+      thing.removeMytem(1);
       test.equal(thing.countAllItems(), 1);
       test.equal(thing.countItemsToRemove(), 1);
 
@@ -531,7 +522,7 @@ var modelTests = {
           if (err) throw err;
           test.equal(reloadedThing.countAllItems(), 1);
 
-          reloadedThing.getItems(function(err, items) {
+          reloadedThing.getMytems(function(err, items) {
             if (err) throw err;
             test.equal(items.length, 1);
             test.equal(reloadedThing.items.length, 1);
@@ -550,14 +541,14 @@ var modelTests = {
     Thing.find(3, function(err, thing) {
       if (err) throw err;
       test.equal(thing.isDirty, false);
-      thing.removeItem(5);
+      thing.removeMytem(5);
       test.equal(thing.isDirty, false);
-      thing.removeItem(item);
+      thing.removeMytem(item);
       test.equal(thing.isDirty, false);
 
       Item.find(3, function(err, item) {
         if (err) throw err;
-        thing.removeItem(item);
+        thing.removeMytem(item);
         test.equal(thing.isDirty, false);
 
         test.done();
@@ -569,5 +560,5 @@ var modelTests = {
 module.exports['model'] = jaz.Object.extend({}, modelTests);
 module.exports['model'].setUp = setup('object');
 
-module.exports['model with late defined assoc'] = jaz.Object.extend({}, modelTests);
-module.exports['model with late defined assoc'].setUp = setup('late defined');
+//module.exports['model with late defined assoc'] = jaz.Object.extend({}, modelTests);
+//module.exports['model with late defined assoc'].setUp = setup('late defined');
