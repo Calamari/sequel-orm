@@ -77,7 +77,7 @@ module.exports['default validations'] = {
       test.done();
     },
     'test is float': function(test) {
-      var item = this.Item.create({ myInt: "bla" });
+      var item = this.Item.create({ myInt: 44.8 });
       test.equal(item.validate(), false);
       test.equal(item.errors.length, 1);
       test.equal(item.errors[0].column, 'myInt');
@@ -324,7 +324,7 @@ module.exports['custom validations'] = {
     item.text = 'one';
     test.equal(item.validate(), true);
     test.equal(item.errors.length, 0);
-    
+
     test.done();
   },
   'test more validators as custom ones': function(test) {
@@ -346,7 +346,7 @@ module.exports['custom validations'] = {
     test.equal(item.errors.length, 1);
     test.equal(item.errors['text'].length, 1);
     test.equal(item.errors['text'][0], 'one');
-    
+
     test.done();
   },
   'test error is thrown if no function is given as validator': function(test) {
