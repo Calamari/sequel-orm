@@ -20,6 +20,20 @@ module.exports.createTable = {
       });
     });
   },
+  'test if callback is optional': function(test) {
+    db = this.db;
+    test.doesNotThrow(function() {
+      db.createTable('products');
+    });
+    test.done();
+  },
+  'test if callback is optional although there is an error': function(test) {
+    db = this.db;
+    test.doesNotThrow(function() {
+      db.createTable('');
+    });
+    test.done();
+  },
   'test creating an existing table returns error': function(test) {
     db = this.db;
     db.createTable('products', null, function(err) {
@@ -305,6 +319,20 @@ module.exports.updateTable = {
       if (err) throw err;
       test.done();
     });
+  },
+  'test if callback is optional': function(test) {
+    db = this.db;
+    test.doesNotThrow(function() {
+      db.updateTable('tasks');
+    });
+    test.done();
+  },
+  'test if callback is optional although there is an error': function(test) {
+    db = this.db;
+    test.doesNotThrow(function() {
+      db.updateTable('');
+    });
+    test.done();
   },
   'test if updateTable returns error if table does not exist': function(test) {
     test.expect(2);
