@@ -10,8 +10,8 @@ module.exports.createTable = {
       cb();
     });
   },
-  'test creating a table': function(test) {
-    this.db.createTable('products', function(err) {
+  'test creating an empty table': function(test) {
+    this.db.createTable('products', null, function(err) {
       if (err) throw err;
       client.query("DESCRIBE products;", function(err, result) {
         if (err) throw err;
@@ -22,16 +22,16 @@ module.exports.createTable = {
   },
   'test creating an existing table returns error': function(test) {
     db = this.db;
-    db.createTable('products', function(err) {
+    db.createTable('products', null, function(err) {
       if (err) throw err;
-      db.createTable('products', function(err) {
+      db.createTable('products', null, function(err) {
         test.equal(err.constructor, Seq.errors.TableAlreadyExistsError, "Error should be of Type TableAlreadyExistsError");
         test.done();
       });
     });
   },
   'test creating a table automatically adds an id field': function(test) {
-    this.db.createTable('products', function(err) {
+    this.db.createTable('products', null, function(err) {
       if (err) throw err;
       client.query("DESCRIBE products;", function(err, result) {
         if (err) throw err;
@@ -233,7 +233,7 @@ module.exports.createTable = {
   },
   'test dropping of a Table': function(test) {
     var db = this.db;
-    db.createTable('products', function(err) {
+    db.createTable('products', null, function(err) {
       if (err) throw err;
       db.dropTable('products', function(err) {
         if (err) throw err;
