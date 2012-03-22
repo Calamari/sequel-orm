@@ -405,6 +405,7 @@ var modelTests = {
 
       item.getThing(function(err, thing) {
         test.equal(err.constructor, Seq.errors.ItemNotFoundError);
+        test.equal(thing, null);
 
         test.done();
       });
@@ -449,6 +450,48 @@ var modelTests = {
       item.getThing(function(err, thing) {
         if (err) throw err;
         test.equal(item.thing, thing);
+
+        test.done();
+      });
+    });
+  },
+  'test getting associated Item from not saved Record': function(test) {
+    var Item  = Seq.getModel('Item'),
+        Thing = Seq.getModel('Thing'),
+        item  = Item.create({ name: 'just an item '}),
+        thing = Thing.create({ name: 'just a thing '});
+
+    item.thing = thing;
+    item.getThing(function(err, thing2) {
+      if (err) throw (err);
+
+      test.equal(thing2, thing);
+      test.done();
+    });
+  },
+  'test getting not existent associated Item from not saved Record': function(test) {
+    var Item  = Seq.getModel('Item'),
+        Thing = Seq.getModel('Thing'),
+        item  = Item.create({ name: 'just an item '});
+
+    item.getThing(function(err, thing) {
+      test.equal(err.constructor, Seq.errors.ItemNotFoundError);
+
+      test.equal(thing, null);
+      test.done();
+    });
+  },
+  'test trying to get not set associated Item from saved Record': function(test) {
+    var Item  = Seq.getModel('Item'),
+        Thing = Seq.getModel('Thing'),
+        item  = Item.create({ name: 'just an item '});
+
+    item.save(function(err) {
+      if (err) throw (err);
+
+      item.getThing(function(err, thing) {
+        test.equal(err.constructor, Seq.errors.ItemNotFoundError);
+        test.equal(thing, null);
 
         test.done();
       });
