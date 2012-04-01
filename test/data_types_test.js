@@ -1,4 +1,5 @@
-var types = require(__dirname + '/..').dataTypes;
+var types = require(__dirname + '/..').dataTypes,
+    jaz   = require('jaz-toolkit');
 
 module.exports = {
   'test INT specification': function(test) {
@@ -93,6 +94,19 @@ module.exports = {
     test.ok(!types.DATETIME().validation(null));
     test.ok(!types.DATETIME().validation(true));
     test.ok(!types.DATETIME().validation({}));
+    test.done();
+  },
+  'test DATETIME save conversion': function(test) {
+    var now = new Date();
+    test.equal(typeof types.DATETIME().save(now), 'string');
+    test.equal(types.DATETIME().save(now), jaz.Date.toMySQLString(now));
+    test.done();
+  },
+  'test DATETIME load conversion': function(test) {
+    var now       = new Date(),
+        nowString = jaz.Date.toMySQLString(now);
+    test.equal(types.DATETIME().load(nowString).constructor, Date);
+    test.equal(types.DATETIME().load(nowString).toUTCString(), now.toUTCString());
     test.done();
   }
 };
