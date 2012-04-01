@@ -115,10 +115,10 @@ module.exports = {
     test.done();
   },
   'test DATETIME load conversion': function(test) {
-    var now       = new Date(),
-        nowString = jaz.Date.toMySQLString(now);
-    test.equal(types.DATETIME().load(nowString).constructor, Date);
-    test.equal(types.DATETIME().load(nowString).toUTCString(), now.toUTCString());
+    var now       = new Date(2012, 1, 12, 14, 15, 16),
+        nowLoaded = new Date(2012, 1, 12, 14 + now.getTimezoneOffset()/60, 15, 16);
+    test.equal(types.DATETIME().load(nowLoaded).toUTCString(), now.toUTCString());
+    test.equal(types.DATETIME().load(nowLoaded).constructor, Date);
     test.done();
   }
 };
