@@ -96,6 +96,18 @@ module.exports = {
     test.ok(!types.DATETIME().validation({}));
     test.done();
   },
+
+
+  'test FLOAT save conversion': function(test) {
+    test.equal(types.FLOAT().save(4.3), 4.3);
+    test.equal(types.FLOAT().save(43), 43);
+    test.done();
+  },
+  'test BOOLEAN save conversion': function(test) {
+    test.equal(types.BOOLEAN().save(true), true);
+    test.equal(types.BOOLEAN().save(false), false);
+    test.done();
+  },
   'test DATETIME save conversion': function(test) {
     var now = new Date();
     test.equal(typeof types.DATETIME().save(now), 'string');
