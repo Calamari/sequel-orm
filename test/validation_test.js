@@ -264,6 +264,7 @@ var emailValidator = function(val) {
 
 module.exports['custom validations'] = {
   'test if custom validator is used and marked as custom': function(test) {
+    Seq.clearTableDefinitions();
     var Item = Seq.defineModel('Item', {
       pseudoEmail: Seq.dataTypes.VARCHAR({ validation: emailValidator })
     });

@@ -1,3 +1,4 @@
+
 # SequelORM
 
 Extensible and powerful MySQL object-relational mapper with the right amout of ease-of-use.
@@ -92,11 +93,24 @@ Wanna an example? Take this:
 
 ### Adapting save and load methods of DataTypes
 
-TODO
+You could also change the actual stored data in the database using the save option of any data type. And also change the data loaded from the database. It will take the value that is to save as parameter and expects the value that should be stored as return value. The following example should make this clear:
 
-### Interacting with the models and database
+    var Product = Seq.defineModel('Product', {
+      title: Seq.dataTypes.VARCHAR({ save: function(val) { return 'Project: ' + val; } })
+    });
 
-TODO
+Saving an instance of this class will always save a title prepended with 'Project :'.
+
+There is also an option for loading for values available. Which is similar to the save options:
+
+    var Product = Seq.defineModel('Product', {
+      title: Seq.dataTypes.VARCHAR({
+        save: function(val) { return 'Project: ' + val; },
+        load: function(val) { return val.replace('Project: ', ''); }
+      })
+    });
+
+In this example the title of every product will have 'Product: ' prepended in the database, but if you load it again, you will have the original value restored.
 
 ### Creating great middleare with hooks
 There are two types of hooks: *model hooks* which will be defined on the model itself and are called on every instance of this model and *instance hooks* which will only be defined on that instance just like an EventEmitter.
@@ -121,7 +135,7 @@ At the moment there is only one instance hook available:
 Instance hooks are used like a typical Node.js EventEmitter. So the methods on, once, removeListener, etc. are all available.
 
     var Thing  = SequelORM.getModel('Thing'),
-        myFunc = function() { console.log('Yeah I was saved'); };
+        myFunc = function() { console.log('Yeah this was saved', this); };
     Thing.on('save', myFunc);
     Thing.removeListener('save', myFunc);
 
@@ -222,13 +236,6 @@ It uses the [node_mysql](https://github.com/felixge/node-mysql) module by [Felix
 
 ## Things that are still ToDo:
 
-### v0.1:
-- this readme file with all stuff explained
-- generated documentation
-- take care of default value WHERE to set it?
-- destroyAll method
-- jaz-toolkit updated and on github
-
 ### v0.2:
 - saving of multiple items at once
 - dont mark things as dirty if orignal state is met again
@@ -249,6 +256,7 @@ It uses the [node_mysql](https://github.com/felixge/node-mysql) module by [Felix
 - Save multiple records at once Record.save([r1, r2, r3])
 - count method
 - create Validation Class out of validators
+- onDestroy hook
 
 ### later:
 - findEach method like in rails: http://guides.rubyonrails.org/active_record_querying.html
@@ -256,6 +264,7 @@ It uses the [node_mysql](https://github.com/felixge/node-mysql) module by [Felix
 - get and validate hook, as second type of hooks?
 - load element inclusive all associated elements
 - create docs
+- destroyAll method
 - table.hasOne('OtherThing')
 - COMMENTS in data types
 - ZEROFILL numbers in data types

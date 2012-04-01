@@ -6,6 +6,7 @@ var Seq         = require(__dirname + '/..'),
 
 module.exports['static'] = {
   setUp: function(cb) {
+    Seq.clearTableDefinitions();
     var db  = Seq.createIfNotExistent(TEST_CONFIG);
     this.db = db;
     client.query("DROP TABLE items;", function() {
@@ -216,6 +217,7 @@ module.exports['static'] = {
 
 module.exports['instance'] = {
   setUp: function(cb) {
+    Seq.clearTableDefinitions();
     var db  = Seq.createIfNotExistent(TEST_CONFIG);
     this.db = db;
     client.query("DROP TABLE items;", function() {
@@ -242,6 +244,65 @@ module.exports['instance'] = {
     item.save(function(err) {
       if (err) throw err;
       test.done();
+    });
+  }
+};
+
+module.exports['data type hooks'] = {
+  setUp: function(cb) {
+    Seq.clearTableDefinitions();
+    var db  = Seq.createIfNotExistent(TEST_CONFIG);
+    this.db = db;
+    client.query("DROP TABLE items;", function() {
+      var tableDef = function(table) {
+        table.addColumn('name', Seq.dataTypes.VARCHAR({
+          save: function(val) { return val+'foo'; },
+          load: function(val) { return val+'bar'; }
+        }));
+        table.addColumn('price', Seq.dataTypes.INT({
+          required: true,
+          save: function(val) { return val*10; },
+          load: function(val) { return val/2; }
+        }));
+        table.addTimestamps();
+      };
+      Seq.createTable('items', tableDef);
+      db.createTable('items', tableDef, function() {
+        Seq.defineModel('Item', Seq.getTableFromMigration('items'));
+        cb();
+      });
+    });
+  },
+  'test save hooks': function(test) {
+    var Item = Seq.getModel('Item'),
+        item = Item.create({ name: 'Bob', price: 42 });
+    item.save(function(err) {
+      if (err) throw err;
+
+      client.query("SELECT * FROM items", function(err, results) {
+        if (err) throw err;
+        test.equal(results.length, 1);
+        test.equal(results[0].name, 'Bobfoo');
+        test.equal(results[0].price, 420);
+
+        test.done();
+      });
+    });
+  },
+  'test load hooks': function(test) {
+    var Item = Seq.getModel('Item'),
+        item = Item.create({ name: 'Bob', price: 42 });
+    item.save(function(err) {
+      if (err) throw err;
+
+      Item.find(item.id, function(err, item) {
+        if (err) throw err;
+
+        test.equal(item.name, 'Bobfoobar');
+        test.equal(item.price, 210);
+
+        test.done();
+      });
     });
   }
 };
