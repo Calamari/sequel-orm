@@ -15,8 +15,7 @@
     "mysql": "~0.9",
     "async": "~0.1",
     "jaz-toolkit": "git://github.com/Calamari/jaz-toolkit.git",
-    "yuidocjs": "git://github.com/apm/yuidocjs.git",
-    "benchmark": "~0.2"
+    "yuidocjs": "git://github.com/apm/yuidocjs.git"
   },
   "devDependencies": {}
 }
