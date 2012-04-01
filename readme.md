@@ -146,7 +146,7 @@ A simple example of doing a migration:
 You only need then a script, that goes through all your migration files and then calling either the up or down method on the SequelORM instance you created (or on the base class, for generating migration and not doing things on the database).
 
 ### Associations
-The association concept is pretty much the same as in [the Active Records of Ruby on Rails](http://guides.rubyonrails.org/association_basics.html). But at the moment much more basic.
+The association concept is pretty much the same as in [the Active Records of Ruby on Rails](http://guides.rubyonrails.org/association_basics.html). But at the moment much more basic. The aim of this lib is to implement all that is useful in Active Record in this lib, too. At the moment that's creating hasOne, hasMany and belongsTo associations. If you create an association it will be named after the name of the associated model by default, but it is also possible to give them different names using the name option.
 
 #### HasOne and BelongsTo Associations
 A hasOne and belongsTo association can be defined like the following example:
@@ -185,6 +185,31 @@ Doing this, you can then do the following things. Setting and Getting the things
 
 If you want to save the item, make sure that you will save the associated objects first, else save will callback with error: `AssociationsNotSavedError`.
 
+#### Differently named HasOne and BelongsTo Associations
+
+Just let this example speak for itself:
+
+    // create the tables
+    Seq.createTable('persons', function(table) {
+      table.addColumn('name', Seq.dataTypes.VARCHAR());
+      table.addBelongsToColumn('person', { name: 'father' });
+      table.addBelongsToColumn('person', { name: 'mother' });
+    });
+    // define the models with a one to one association:
+    var Person = Seq.defineModel('Person', Seq.getTableFromMigration('persons'));
+    Person.hasMany(Person, { name: 'children' });
+    Person.belongsTo(Person, { name: 'father' });
+    Person.belongsTo(Person, { name: 'mother' });
+
+This lets you then do this:
+
+    var mum = Person.create({ 'Jane' }),
+        dad = Person.create({ 'John' }),
+        son = Person.create({ 'Joey' });
+    son.setFather(dad);
+    son.setMother(mum);
+    ...
+
 
 ## Things to be aware of
 It uses the [node_mysql](https://github.com/felixge/node-mysql) module by [Felix Geisendörfer](https://github.com/felixge).
@@ -192,19 +217,17 @@ It uses the [node_mysql](https://github.com/felixge/node-mysql) module by [Felix
 ## Things that are still todo:
 
 ### v0.1:
-- Check if record can be extracted as module from model.js
 - this readme file with all stuff explained
 - generated documentation
-- chaining (of save, add and set methods...)
 - fix Date locale problem and tests
 - make sure we only save changed attributes into db
 - take care of default value WHERE to set it?
 - hooks filling up createdAt and updatedAt columns
-- BUG: timestamps
 - destroyAll method
 - jaz-toolkit updated and on github
 
 ### v0.2:
+- saving of multiple items at once
 - dont mark things as dirty if orignal state is met again
 - dont save assocs that are already saved
 - load associated records instantly with loading this one
