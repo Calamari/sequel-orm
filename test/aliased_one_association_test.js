@@ -83,6 +83,7 @@ var modelTests = {
       item.thingyId = 3;
       test.equal(item.isDirty, true);
       item.save(function(err) {
+        if (err) throw err;
         client.query("SELECT * FROM items WHERE id=2", function(err, results) {
           if (err) throw err;
 

@@ -225,7 +225,6 @@ It uses the [node_mysql](https://github.com/felixge/node-mysql) module by [Felix
 ### v0.1:
 - this readme file with all stuff explained
 - generated documentation
-- make sure we only save changed attributes into db
 - take care of default value WHERE to set it?
 - destroyAll method
 - jaz-toolkit updated and on github

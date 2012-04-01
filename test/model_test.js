@@ -466,6 +466,69 @@ module.exports['getters & setters'] = {
   }
 };
 
+module.exports['model saving'] = {
+  setUp: function(cb) {
+    var db  = Seq.createIfNotExistent(TEST_CONFIG);
+    this.db = db;
+    client.query("DROP TABLE things;", function() {
+      Seq.clearTableDefinitions();
+      var tableDef = function(table) {
+        table.addColumn('name', Seq.dataTypes.VARCHAR());
+        table.addColumn('price', Seq.dataTypes.INT());
+      };
+      Seq.createTable('things', tableDef);
+      db.createTable('things', tableDef, function() {
+        cb();
+      });
+    });
+  },
+  tearDown: function(cb) {
+    Seq.removeAllListeners('log');
+    cb();
+  },
+  'test saving of just saved item does nothing': function(test) {
+    var Thing = Seq.defineModel('Thing', Seq.getTableFromMigration('things')),
+        thing = Thing.create({ name: 'a cool named thing' }),
+        countQueries = 0;
+
+    Seq.on('log', function(status, message) {
+      ++countQueries;
+    });
+
+    thing.save(function(err) {
+      if (err) throw err;
+
+      thing.save(function(err, thing) {
+        if (err) throw err;
+        test.equal(countQueries, 1);
+
+        test.done();
+      });
+    });
+  },
+  'test saving again of just saved item updates only changed items': function(test) {
+    var Thing = Seq.defineModel('Thing', Seq.getTableFromMigration('things')),
+        thing = Thing.create({ name: 'just another cool named thing', price: 1 });
+
+    thing.save(function(err) {
+      if (err) throw err;
+
+      thing.price = 1000000;
+
+      Seq.on('log', function(status, message) {
+        test.ok(message.match('price'));
+        test.ok(!message.match('name'));
+      });
+
+      thing.save(function(err, thing) {
+        if (err) throw err;
+
+        test.done();
+      });
+    });
+  }
+};
+
 module.exports['model.remove'] = {
   setUp: function(cb) {
     var db  = Seq.createIfNotExistent(TEST_CONFIG);
