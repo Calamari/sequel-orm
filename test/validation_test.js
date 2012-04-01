@@ -366,3 +366,40 @@ module.exports['custom validations'] = {
     test.done();
   }
 };
+
+module.exports['later added validations'] = {
+  setUp: function(cb) {
+    Seq.createTable('items', function(table) {
+      table.addColumn('pseudoEmail', Seq.dataTypes.VARCHAR());
+    });
+    cb();
+  },
+  'test if validators can be added later': function(test) {
+    var Item = Seq.defineModel('Item', Seq.getTableFromMigration('items'), {
+      validations: {
+        pseudoEmail: { validation: emailValidator, required: true }
+      }
+    });
+    var item = Item.create({ pseudoEmail: '' });
+    test.equal(item.validate(), false);
+    test.equal(item.errors.length, 1);
+    test.equal(item.errors[0].column, 'pseudoEmail');
+    test.equal(item.errors[0].type, 'required');
+    item.pseudoEmail = 'no email sorry';
+    test.equal(item.validate(), false);
+    test.equal(item.errors.length, 1);
+    test.equal(item.errors[0].column, 'pseudoEmail');
+    test.equal(item.errors[0].type, 'custom');
+    test.done();
+  },
+  'test that later added validations will be checked for validty': function(test) {
+    test.throws(function() {
+      var Item = Seq.defineModel('Item', Seq.getTableFromMigration('items'), {
+        validations: {
+          pseudoEmail: { validation: { test: function() {}, bla: true } }
+        }
+      });
+    }, Seq.errors.NotAValidatorError);
+    test.done();
+  }
+};

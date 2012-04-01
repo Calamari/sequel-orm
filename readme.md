@@ -192,26 +192,27 @@ It uses the [node_mysql](https://github.com/felixge/node-mysql) module by [Felix
 ## Things that are still todo:
 
 ### v0.1:
-- hasMany with different name
 - Check if record can be extracted as module from model.js
 - this readme file with all stuff explained
 - generated documentation
 - chaining (of save, add and set methods...)
-- calc codecoverage?
 - fix Date locale problem and tests
 - make sure we only save changed attributes into db
 - take care of default value WHERE to set it?
 - hooks filling up createdAt and updatedAt columns
+- BUG: timestamps
 - destroyAll method
 - jaz-toolkit updated and on github
 
 ### v0.2:
 - dont mark things as dirty if orignal state is met again
 - dont save assocs that are already saved
+- load associated records instantly with loading this one
 - Only load some attributes of a record (maybe like in sequalize)
 - TableMigrator should be able to create syncs and replace TableCreator and TableUpdater
 - through associations
 - data type ENUM
+- calc codecoverage?
 - associations with autosave?
 - Check association validation before saving? (after previous one)
 - Item.getThings({ where: 'id>3', limit: 5 }, cb) should work
@@ -221,6 +222,7 @@ It uses the [node_mysql](https://github.com/felixge/node-mysql) module by [Felix
 - Thing.findAll({ where: 'things.id<=2' },... Think about adding table name automatically for inputs??
 - Save multiple records at once Record.save([r1, r2, r3])
 - count method
+- create Validation Class out of validators
 
 ### later:
 - findEach method like in rails: http://guides.rubyonrails.org/active_record_querying.html
