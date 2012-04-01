@@ -106,6 +106,7 @@ module.exports.modelInstanciation = {
     test.equal(item.price, 42);
     test.equal(item.createdAt, null);
     test.equal(item.updatedAt, null);
+
     test.done();
   },
   'test if element is marked as new and dirty': function(test) {
@@ -116,6 +117,7 @@ module.exports.modelInstanciation = {
         });
     test.equal(item.isNew, true);
     test.equal(item.isDirty, true);
+
     test.done();
   },
   'test if instance can be saved': function(test) {
@@ -131,10 +133,12 @@ module.exports.modelInstanciation = {
       test.equal(item.id, 1);
       test.equal(typeof item.id, 'number');
       test.ok(jaz.Object.isEqual(item, savedItem));
+
       client.query("SELECT * FROM items", function(err, results) {
         if (err) throw err;
         test.equal(results[0].name, 'John');
         test.equal(results[0].price, 42);
+
         test.done();
       });
     });
@@ -150,11 +154,12 @@ module.exports.modelInstanciation = {
       if (err) throw err;
       test.ok(Math.abs(item.createdAt.getTime() - now.getTime()) < 10, 'createdAt time is about the same');
       test.ok(Math.abs(item.updatedAt.getTime() - now.getTime()) < 10, 'updatedAt time is about the same');
-      client.query("SELECT * FROM items", function(err, results) {
+
+      Item.find(item.id, function(err, loadedItem) {
         if (err) throw err;
-        // TODO: those are off by one hour:
-//        test.equal(results[0].created_at, now.toUTCString());
-//        test.equal(results[0].updated_at, now.toUTCString());
+        test.equal(loadedItem.createdAt.toUTCString(), now.toUTCString());
+        test.equal(loadedItem.updatedAt.toUTCString(), now.toUTCString());
+
         test.done();
       });
     });
@@ -185,11 +190,13 @@ module.exports.modelInstanciation = {
           test.equal(savedItem.name, 'Maya');
           test.ok(Math.abs(item.createdAt.getTime() - now.getTime()) < 10, 'createdAt time is about the same');
           test.ok(Math.abs(item.updatedAt.getTime() - updateNow.getTime()) < 10, 'updatedAt time should be a newer date');
+          test.ok(item.createdAt.getTime() < savedItem.updatedAt.getTime(), 'updatedAt time should be a newer then createdAt time');
 
           client.query("SELECT * FROM items", function(err, results) {
             if (err) throw err;
             test.equal(results[0].name, 'Maya');
             test.equal(results[0].price, 2);
+
             test.done();
           });
         });
@@ -215,6 +222,7 @@ module.exports.modelInstanciation = {
         Item.find(2, function(err, foundItem) {
           test.equal(err.constructor, Seq.errors.ItemNotFoundError);
           test.equal(foundItem, null);
+
           test.done();
         });
       });
@@ -236,6 +244,7 @@ module.exports.modelInstanciation = {
     test.equal(typeof item.foo, 'function');
     test.equal(item.testMe(), 42);
     test.equal(item.foo('meauw'), 'wuff meauw');
+
     test.done();
   },
   'test instance methods work on loaded items': function(test) {

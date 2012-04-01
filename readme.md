@@ -90,8 +90,13 @@ Wanna an example? Take this:
     });
 
 
+### Adapting save and load methods of DataTypes
+
+TODO
+
 ### Interacting with the models and database
 
+TODO
 
 ### Creating great middleare with hooks
 There are two types of hooks: *model hooks* which will be defined on the model itself and are called on every instance of this model and *instance hooks* which will only be defined on that instance just like an EventEmitter.
@@ -210,19 +215,18 @@ This lets you then do this:
     son.setMother(mum);
     ...
 
+## Things that might be interesting
 
-## Things to be aware of
 It uses the [node_mysql](https://github.com/felixge/node-mysql) module by [Felix Geisendörfer](https://github.com/felixge).
 
-## Things that are still todo:
+
+## Things that are still ToDo:
 
 ### v0.1:
 - this readme file with all stuff explained
 - generated documentation
-- fix Date locale problem and tests
 - make sure we only save changed attributes into db
 - take care of default value WHERE to set it?
-- hooks filling up createdAt and updatedAt columns
 - destroyAll method
 - jaz-toolkit updated and on github
 
@@ -259,3 +263,4 @@ It uses the [node_mysql](https://github.com/felixge/node-mysql) module by [Felix
 - autoincrement in database
 - Database name inflection plural/singular using a dictionary
 - transactions
+- addTimestamps method accepts options to only set one of both
