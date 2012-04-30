@@ -242,7 +242,6 @@ It uses the [node_mysql](https://github.com/felixge/node-mysql) module by [Felix
 - saving of multiple items at once
 (- dont mark things as dirty if orignal state is met again)
 - dont save assocs that are already saved
-- load associated records instantly with loading this one
 - TableMigrator should be able to create syncs and replace TableCreator and TableUpdater
 - through associations
 - maybe: calc codecoverage?
@@ -259,6 +258,7 @@ It uses the [node_mysql](https://github.com/felixge/node-mysql) module by [Felix
 - updateAttributes method like in ActiveRecord
 
 ### later:
+- another possibility to access things like: Item.find(1).include('things').run(function(err, item) {});
 - Rails like touch: true/false on columns for updateing updated_at column on save
 - findEach method like in rails: http://guides.rubyonrails.org/active_record_querying.html
 - Post.comments.push({ text: "bla" }) should create a Comment and push it to Post as commetns (e.g. Post.addComments(Comment.create({ text: "bla" })))
