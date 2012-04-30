@@ -240,7 +240,7 @@ It uses the [node_mysql](https://github.com/felixge/node-mysql) module by [Felix
 - Readme: explain validation
 - Maybe: Add unique validation
 - saving of multiple items at once
-- dont mark things as dirty if orignal state is met again
+(- dont mark things as dirty if orignal state is met again)
 - dont save assocs that are already saved
 - load associated records instantly with loading this one
 - TableMigrator should be able to create syncs and replace TableCreator and TableUpdater
@@ -255,9 +255,9 @@ It uses the [node_mysql](https://github.com/felixge/node-mysql) module by [Felix
 - association validation
 - Thing.findAll({ where: 'things.id<=2' },... Think about adding table name automatically for inputs??
 - Save multiple records at once Record.save([r1, r2, r3])
-- count method
 - create Validation Class out of validators
 - after/before/aroundDestroy hook
+- updateAttributes method like in ActiveRecord
 
 ### later:
 - Rails like touch: true/false on columns for updateing updated_at column on save

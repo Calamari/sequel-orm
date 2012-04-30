@@ -356,5 +356,30 @@ module.exports['model.find methods'] = {
       test.equal(thing, null);
       test.done();
     });
+  },
+
+  'test count can count all records': function(test) {
+    var Thing = Seq.getModel('Thing');
+    Thing.count(function(err, count) {
+      if (err) throw err;
+      test.equal(count, 4);
+      test.done();
+    });
+  },
+  'test count can use where clause': function(test) {
+    var Thing = Seq.getModel('Thing');
+    Thing.count({ where: "name LIKE 'B%'"}, function(err, count) {
+      if (err) throw err;
+      test.equal(count, 2);
+      test.done();
+    });
+  },
+  'test count can use user parameters in where clause': function(test) {
+    var Thing = Seq.getModel('Thing');
+    Thing.count({ where: "name LIKE ?"}, ['B%'], function(err, count) {
+      if (err) throw err;
+      test.equal(count, 2);
+      test.done();
+    });
   }
 };
