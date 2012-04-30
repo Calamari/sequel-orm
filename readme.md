@@ -244,7 +244,6 @@ It uses the [node_mysql](https://github.com/felixge/node-mysql) module by [Felix
 - dont save assocs that are already saved
 - TableMigrator should be able to create syncs and replace TableCreator and TableUpdater
 - through associations
-- maybe: calc codecoverage?
 - associations with autosave?
 - Check association validation before saving? (after previous one)
 - Item.getThings({ where: 'id>3', limit: 5 }, cb) should work
@@ -262,7 +261,6 @@ It uses the [node_mysql](https://github.com/felixge/node-mysql) module by [Felix
 - findEach method like in rails: http://guides.rubyonrails.org/active_record_querying.html
 - Post.comments.push({ text: "bla" }) should create a Comment and push it to Post as commetns (e.g. Post.addComments(Comment.create({ text: "bla" })))
 - get and validate hook, as second type of hooks?
-- load element inclusive all associated elements
 - create docs
 - destroyAll method
 - table.hasOne('OtherThing')

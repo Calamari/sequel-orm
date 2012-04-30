@@ -30,9 +30,9 @@ module.exports.modelDefinition = {
     test.done();
   },
   'test getting tableName': function(test) {
-    var Miss = Seq.defineModel('Miss', {
+    var Marbles = Seq.defineModel('Marbles', {
     });
-    test.equal(Miss.tableName, 'miss', 'don\'t append a plural s at the end, if there is alredy one');
+    test.equal(Marbles.tableName, 'marbles', 'don\'t append a plural s at the end, if there is alredy one');
     test.done();
   },
   'test creating a model has fields': function(test) {
