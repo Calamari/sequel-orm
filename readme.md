@@ -237,15 +237,16 @@ It uses the [node_mysql](https://github.com/felixge/node-mysql) module by [Felix
 ## Things that are still ToDo:
 
 ### v0.2:
+- Readme: explain validation
+- Maybe: Add unique validation
 - saving of multiple items at once
 - dont mark things as dirty if orignal state is met again
 - dont save assocs that are already saved
 - load associated records instantly with loading this one
-- Only load some attributes of a record (maybe like in sequalize)
 - TableMigrator should be able to create syncs and replace TableCreator and TableUpdater
 - through associations
 - data type ENUM
-- calc codecoverage?
+- maybe: calc codecoverage?
 - associations with autosave?
 - Check association validation before saving? (after previous one)
 - Item.getThings({ where: 'id>3', limit: 5 }, cb) should work
@@ -256,9 +257,10 @@ It uses the [node_mysql](https://github.com/felixge/node-mysql) module by [Felix
 - Save multiple records at once Record.save([r1, r2, r3])
 - count method
 - create Validation Class out of validators
-- onDestroy hook
+- after/before/aroundDestroy hook
 
 ### later:
+- Rails like touch: true/false on columns for updateing updated_at column on save
 - findEach method like in rails: http://guides.rubyonrails.org/active_record_querying.html
 - Post.comments.push({ text: "bla" }) should create a Comment and push it to Post as commetns (e.g. Post.addComments(Comment.create({ text: "bla" })))
 - get and validate hook, as second type of hooks?

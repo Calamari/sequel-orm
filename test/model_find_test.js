@@ -30,7 +30,7 @@ module.exports['model.find methods'] = {
         values.push('(?,?,?,?,?,?,?)');
         params.push([ 3, 'Sally', 42, 0.666, new Date(1990, 5, 28), true, '']);
         values.push('(?,?,?,?,?,?,?)');
-        params.push([ 4, 'Zoe', -3423, 99.90909, new Date(2000, 1, 1), true, 'I was here']);
+        params.push([ 4, 'Zoe', -3423, 99.9091, new Date(2000, 1, 1), true, 'I was here']);
         client.query("INSERT INTO things (`id`, `name`, `number`, `float`, `time`, `bool`, `some_text`) VALUES " + values.join(','), jaz.Array.flatten(params), function(err) {
           if (err) throw err;
           cb();
@@ -271,6 +271,43 @@ module.exports['model.find methods'] = {
     Thing.findAllAsHash({ key: 'dontThere', limit: [1,2] }, function(err, things) {
       test.equal(err.constructor, Seq.errors.NotValidColumnError);
       test.equal(things, null);
+      test.done();
+    });
+  },
+
+  'test find can find only some attributes': function(test) {
+    var Thing = Seq.getModel('Thing');
+    Thing.find({ only: ['name', 'float'], where: "name='Zoe'" }, function(err, thing) {
+      if (err) throw err;
+
+      test.equal(thing.name, 'Zoe');
+      test.equal(thing.float, 99.9091);
+      test.equal(thing.number, null);
+      test.equal(thing.id, 4);
+      test.equal(thing.bool, null);
+      test.equal(thing.someText, null);
+      test.done();
+    });
+  },
+  'test findAll can find only some attributes': function(test) {
+    var Thing = Seq.getModel('Thing');
+    Thing.findAll({ only: ['name', 'float'], where: "name='Zoe'" }, function(err, things) {
+      if (err) throw err;
+
+      test.equal(things[0].name, 'Zoe');
+      test.equal(things[0].float, 99.9091);
+      test.equal(things[0].number, null);
+      test.equal(things[0].id, 4);
+      test.equal(things[0].bool, null);
+      test.equal(things[0].someText, null);
+      test.done();
+    });
+  },
+  'test find method returns error if key in only attribute is not a valid column': function(test) {
+    var Thing = Seq.getModel('Thing');
+    Thing.find({ only: ['id', 'dontThere'] }, function(err, thing) {
+      test.equal(err.constructor, Seq.errors.NotValidColumnError);
+      test.equal(thing, null);
       test.done();
     });
   }

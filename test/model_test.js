@@ -308,7 +308,7 @@ module.exports.modelInstanciation = {
     test.equal(Item.doSomething(), Item);
     test.done();
   },
-  'test if save will be delayed it no connection exists': function(test) {
+  'test if save will be delayed if no connection exists': function(test) {
     Seq.removeConnection();
     var Item = Seq.getModel('Item'),
         item = Item.create({
