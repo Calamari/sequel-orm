@@ -289,6 +289,15 @@ module.exports['model.find methods'] = {
       test.done();
     });
   },
+  'test find can cope with camelized attributes': function(test) {
+    var Thing = Seq.getModel('Thing');
+    Thing.find({ only: ['name', 'someText'], where: "name='Zoe'" }, function(err, thing) {
+      if (err) throw err;
+
+      test.equal(thing.someText, 'I was here');
+      test.done();
+    });
+  },
   'test findAll can find only some attributes': function(test) {
     var Thing = Seq.getModel('Thing');
     Thing.findAll({ only: ['name', 'float'], where: "name='Zoe'" }, function(err, things) {
@@ -306,6 +315,43 @@ module.exports['model.find methods'] = {
   'test find method returns error if key in only attribute is not a valid column': function(test) {
     var Thing = Seq.getModel('Thing');
     Thing.find({ only: ['id', 'dontThere'] }, function(err, thing) {
+      test.equal(err.constructor, Seq.errors.NotValidColumnError);
+      test.equal(thing, null);
+      test.done();
+    });
+  },
+
+  'test find can find all attributes except some': function(test) {
+    var Thing = Seq.getModel('Thing');
+    Thing.find({ except: ['float', 'number'], where: "name='Zoe'" }, function(err, thing) {
+      if (err) throw err;
+
+      test.equal(thing.name, 'Zoe');
+      test.equal(thing.float, null);
+      test.equal(thing.number, null);
+      test.equal(thing.id, 4);
+      test.equal(thing.bool, true);
+      test.equal(thing.someText, 'I was here');
+      test.done();
+    });
+  },
+  'test findAll can find all attributes except some': function(test) {
+    var Thing = Seq.getModel('Thing');
+    Thing.findAll({ except: ['name', 'float'], where: "name='Zoe'" }, function(err, things) {
+      if (err) throw err;
+
+      test.equal(things[0].name, null);
+      test.equal(things[0].float, null);
+      test.equal(things[0].number, -3423);
+      test.equal(things[0].id, 4);
+      test.equal(things[0].bool, true);
+      test.equal(things[0].someText, 'I was here');
+      test.done();
+    });
+  },
+  'test find method returns error if key in except attribute is not a valid column': function(test) {
+    var Thing = Seq.getModel('Thing');
+    Thing.find({ except: ['name', 'dontThere'] }, function(err, thing) {
       test.equal(err.constructor, Seq.errors.NotValidColumnError);
       test.equal(thing, null);
       test.done();
