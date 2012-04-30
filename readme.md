@@ -249,7 +249,6 @@ It uses the [node_mysql](https://github.com/felixge/node-mysql) module by [Felix
 - Check association validation before saving? (after previous one)
 - Item.getThings({ where: 'id>3', limit: 5 }, cb) should work
 - Extract functionality for singular pluralize words and make them attributes, ids, or whatever
-- Change findAllAsHash to findAll({ hash: true }) and remove findAllAsHash
 - association validation
 - Thing.findAll({ where: 'things.id<=2' },... Think about adding table name automatically for inputs??
 - Save multiple records at once Record.save([r1, r2, r3])

@@ -232,9 +232,10 @@ module.exports['model.find methods'] = {
       test.done();
     });
   },
-  'test findAllAsHash method works with default id as key': function(test) {
+
+  'test findAll with hash:true works with default id as key': function(test) {
     var Thing = Seq.getModel('Thing');
-    Thing.findAllAsHash({ limit: [1,2] }, function(err, things) {
+    Thing.findAll({ hash: true, limit: [1,2] }, function(err, things) {
       if (err) throw err;
       test.equal(typeof things, 'object');
       test.equal(things[2].name, 'Bob');
@@ -244,9 +245,9 @@ module.exports['model.find methods'] = {
       test.done();
     });
   },
-  'test findAllAsHash method works with name as key': function(test) {
+  'test findAll with hash:name works with name as key': function(test) {
     var Thing = Seq.getModel('Thing');
-    Thing.findAllAsHash({ key: 'name', limit: [1,2] }, function(err, things) {
+    Thing.findAll({ hash: 'name', limit: [1,2] }, function(err, things) {
       if (err) throw err;
       test.equal(typeof things, 'object');
       test.equal(things['Bob'].name, 'Bob');
@@ -256,9 +257,9 @@ module.exports['model.find methods'] = {
       test.done();
     });
   },
-  'test findAllAsHash method works with camelized key': function(test) {
+  'test findAll with hash:name really works with camelized keys': function(test) {
     var Thing = Seq.getModel('Thing');
-    Thing.findAllAsHash({ key: 'someText', where: "name='Zoe'" }, function(err, things) {
+    Thing.findAll({ hash: 'someText', where: "name='Zoe'" }, function(err, things) {
       if (err) throw err;
       test.equal(typeof things, 'object');
       test.equal(things['I was here'].name, 'Zoe');
@@ -266,9 +267,9 @@ module.exports['model.find methods'] = {
       test.done();
     });
   },
-  'test findAllAsHash method returns error if key is not a valid column': function(test) {
+  'test findAll method returns error if key is not a valid column': function(test) {
     var Thing = Seq.getModel('Thing');
-    Thing.findAllAsHash({ key: 'dontThere', limit: [1,2] }, function(err, things) {
+    Thing.findAll({ hash: 'dontThere', limit: [1,2] }, function(err, things) {
       test.equal(err.constructor, Seq.errors.NotValidColumnError);
       test.equal(things, null);
       test.done();
