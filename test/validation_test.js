@@ -255,6 +255,40 @@ module.exports['default validations'] = {
       test.equal(item.errors[0].type, 'default');
       test.done();
     }
+  },
+  ENUM: {
+    setUp: function(cb) {
+      this.Item = Seq.defineModel('Item', {
+        e: Seq.dataTypes.ENUM({ values: ['foo', 'bar'] })
+      });
+      cb();
+    },
+    'test is correct': function(test) {
+      var item = this.Item.create({ e: 'foo' });
+      test.equal(item.validate(), true);
+      test.done();
+    },
+    'test is not in enumeration': function(test) {
+      var item = this.Item.create({ e: 'fooo' });
+      test.equal(item.validate(), false);
+      test.done();
+    },
+    'test is number': function(test) {
+      var item = this.Item.create({ e: 3 });
+      test.equal(item.validate(), false);
+      test.equal(item.errors.length, 1);
+      test.equal(item.errors[0].column, 'e');
+      test.equal(item.errors[0].type, 'default');
+      test.done();
+    },
+    'test is array': function(test) {
+      var item = this.Item.create({ e: [ 'foo' ] });
+      test.equal(item.validate(), false);
+      test.equal(item.errors.length, 1);
+      test.equal(item.errors[0].column, 'e');
+      test.equal(item.errors[0].type, 'default');
+      test.done();
+    }
   }
 };
 

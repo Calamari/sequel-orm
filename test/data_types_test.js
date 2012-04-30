@@ -97,6 +97,28 @@ module.exports = {
     test.done();
   },
 
+  'test ENUM specification': function(test) {
+    var enumType = types.ENUM({ values: ['test', 'lala'] });
+    test.equal(enumType.type, 'enum');
+    test.equal(enumType.sql, "ENUM(" + ['test', 'lala'].join(', ') + ")");
+    test.equal(enumType.defaultOptions, null);
+    test.done();
+  },
+  'test ENUM validation without values are always false': function(test) {
+    test.ok(!types.ENUM().validation(1));
+    test.ok(!types.ENUM().validation('test'));
+    test.ok(!types.ENUM().validation(''));
+    test.done();
+  },
+  'test ENUM validation with values can be true': function(test) {
+    var enumType = types.ENUM({ values: ['test', 'lala'] });
+    test.ok(enumType.validation('lala'));
+    test.ok(enumType.validation('test'));
+    test.ok(!enumType.validation(''));
+    test.ok(!enumType.validation('lalala'));
+    test.done();
+  },
+
 
   'test FLOAT save conversion': function(test) {
     test.equal(types.FLOAT().save(4.3), 4.3);

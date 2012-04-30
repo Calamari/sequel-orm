@@ -245,7 +245,6 @@ It uses the [node_mysql](https://github.com/felixge/node-mysql) module by [Felix
 - load associated records instantly with loading this one
 - TableMigrator should be able to create syncs and replace TableCreator and TableUpdater
 - through associations
-- data type ENUM
 - maybe: calc codecoverage?
 - associations with autosave?
 - Check association validation before saving? (after previous one)
