@@ -593,12 +593,120 @@ module.exports['model.remove'] = {
   }
 };
 
-/**
- TODO:
-  Test datetimes mit before save and after load methods
-  Define custom before save methods
+module.exports['model.updateAttributes'] = {
+  setUp: function(cb) {
+    var db  = Seq.createIfNotExistent(TEST_CONFIG);
+    this.db = db;
+    client.query("DROP TABLE things;", function() {
+      var tableDef = function(table) {
+        table.addColumn('name', Seq.dataTypes.VARCHAR());
+        table.addColumn('evenNumber', Seq.dataTypes.INT({ validation: function(v) { return v%2 == 0; } }));
+        table.addTimestamps();
+      };
+      Seq.clearTableDefinitions();
+      Seq.createTable('things', tableDef);
+      Seq.defineModel('Thing', Seq.getTableFromMigration('things'));
+      db.createTable('things', tableDef, function() {
+        var values = [],
+            params = [];
+        values.push('(?,?,?)');
+        params.push([ 1, 'Bill', 42]);
+        values.push('(?,?,?)');
+        params.push([ 2, 'Bob', 20]);
+        values.push('(?,?,?)');
+        params.push([ 3, 'Sally', 42]);
+        client.query("INSERT INTO things (`id`, `name`, `even_number`) VALUES " + values.join(','), jaz.Array.flatten(params), function(err) {
+          if (err) throw err;
+          cb();
+        });
+      });
+    });
+  },
+  'sets record data': function(test) {
+    var Thing = Seq.getModel('Thing');
+    Thing.find(1, function(err, thing) {
+      if (err) throw err;
 
+      thing.updateAttributes({
+        name: 'Billy',
+        evenNumber: 0
+      });
+      test.equal(thing.name, 'Billy');
+      test.equal(thing.evenNumber, 0);
 
-  later on:
-  caching (remember item,id combo in cache and don't query for them)
- */
+      test.done();
+    });
+  },
+  'is not dirty then': function(test) {
+    var Thing = Seq.getModel('Thing');
+    Thing.find(1, function(err, thing) {
+      if (err) throw err;
+
+      thing.updateAttributes({
+        name: 'Billy',
+        evenNumber: 0
+      }, function(err) {
+        if (err) throw err;
+        test.equal(thing.isDirty, false);
+
+        test.done();
+      });
+    });
+  },
+  'saves data to db directly': function(test) {
+    var Thing = Seq.getModel('Thing');
+    Thing.find(1, function(err, thing) {
+      if (err) throw err;
+
+      thing.updateAttributes({
+        name: 'Billy',
+        evenNumber: 0
+      }, function(err) {
+        if (err) throw err;
+
+        client.query("SELECT * FROM things WHERE id=1", function(err, results) {
+          if (err) throw err;
+          test.equal(results[0].name, 'Billy');
+          test.equal(results[0].even_number, 0);
+
+          test.done();
+        });
+      });
+    });
+  },
+  'validates data before saving to db': function(test) {
+    var Thing = Seq.getModel('Thing');
+    Thing.find(1, function(err, thing) {
+      if (err) throw err;
+
+      thing.updateAttributes({
+        name: 'Billy',
+        evenNumber: 1
+      }, function(err) {
+        test.equal(err.constructor, Seq.errors.ItemNotValidError, "item should not be valid");
+        test.equal(thing.isDirty, true);
+
+        test.done();
+      });
+    });
+  },
+  'updates updatedAt field if present': function(test) {
+    var Thing = Seq.getModel('Thing');
+    Thing.find(1, function(err, thing) {
+      if (err) throw err;
+
+      var origUpdatedAt = thing.updatedAt;
+
+      thing.updateAttributes({
+        name: 'Billy',
+        evenNumber: 2
+      }, function(err) {
+        if (err) throw err;
+        test.notEqual(origUpdatedAt, thing.updatedAt);
+
+        test.done();
+      });
+    });
+  }
+};
+

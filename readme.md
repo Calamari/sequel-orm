@@ -237,7 +237,8 @@ It uses the [node_mysql](https://github.com/felixge/node-mysql) module by [Felix
 ## Things that are still ToDo:
 
 ### v0.2:
-- Readme: explain validation
+- Readme: explain validation, updateAttributes
+- Add different types of typical validations to this
 - Maybe: Add unique validation
 - saving of multiple items at once
 (- dont mark things as dirty if orignal state is met again)
@@ -253,10 +254,9 @@ It uses the [node_mysql](https://github.com/felixge/node-mysql) module by [Felix
 - Save multiple records at once Record.save([r1, r2, r3])
 - create Validation Class out of validators
 - after/before/aroundDestroy hook
-- updateAttributes method like in ActiveRecord
 
 ### later:
-- another possibility to access things like: Item.find(1).include('things').run(function(err, item) {});
+- another possibility to access things like: Item.find(1).include('things').run(function(err, item) {}); + .success and .fail callbacks
 - Rails like touch: true/false on columns for updateing updated_at column on save
 - findEach method like in rails: http://guides.rubyonrails.org/active_record_querying.html
 - Post.comments.push({ text: "bla" }) should create a Comment and push it to Post as commetns (e.g. Post.addComments(Comment.create({ text: "bla" })))
@@ -270,3 +270,4 @@ It uses the [node_mysql](https://github.com/felixge/node-mysql) module by [Felix
 - Database name inflection plural/singular using a dictionary
 - transactions
 - addTimestamps method accepts options to only set one of both
+- Caching mechanism?
