@@ -1,4 +1,3 @@
-
 # SequelORM
 
 Extensible and powerful MySQL object-relational mapper with the right amout of ease-of-use.
@@ -9,14 +8,14 @@ This should give you a short overview over some of the most used features of Seq
 ### Connecting to a database
 Creating a database connection is as easy as:
 
-    var SequelORM  = require('sequel_orm');
-    var db = new SequelORM({
+    var Seq  = require('sequel_orm');
+    var db = new Seq.create({
       user:     'theuser',
       password: 'password',
       database: 'database_name'
     });
 
-But the real connection will as soon be done as the first sql will be made.
+But the real connection will be done as soon as the first sql will be made.
 
 ### Creating a table
 A table for a migration can be done like the following example:
@@ -112,7 +111,7 @@ There is also an option for loading for values available. Which is similar to th
 
 In this example the title of every product will have 'Product: ' prepended in the database, but if you load it again, you will have the original value restored.
 
-### Creating great middleare with hooks
+### Creating great middleware with hooks
 There are two types of hooks: *model hooks* which will be defined on the model itself and are called on every instance of this model and *instance hooks* which will only be defined on that instance just like an EventEmitter.
 
 #### Model hooks:
